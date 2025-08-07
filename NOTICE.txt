@@ -1,0 +1,35 @@
+Copyright (c) by various holding parties, including (but not limited to):
+
+NAudio
+Copyright (c) 2020 Mark Heath.
+
+libresamplesharp
+Copyright (c) 2018 Xianyi Cui
+
+libresample4j
+Copyright (c) 2009 Laszlo Systems, Inc
+
+libresample 0.1.3
+Copyright (c) 2003 Dominic Mazzoni
+
+Resample 1.7
+Copyright (c) 1994-2002 Julius O. Smith III
+
+All rights are reserved by their respective holders.
+
+
+
+This product includes software derived from the work of various parties,
+including (but not limited to): Julius Smith, Dominic Mazzoni, David Nault,
+and others.
+
+Source code:
+- http://ccrma.stanford.edu/~jos/gz/resample-1.8.1.tar.gz
+- https://github.com/naudio/NAudio
+- https://github.com/minorninth/libresample
+- https://github.com/dnault/libresample4j
+- https://github.com/xycui/libresamplesharp
+
+References:
+- https://ccrma.stanford.edu/~jos/resample/
+- https://ccrma.stanford.edu/~jos/resample/Free_Resampling_Software.html
