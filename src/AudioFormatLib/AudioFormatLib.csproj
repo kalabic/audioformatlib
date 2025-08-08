@@ -5,10 +5,25 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Version>1.0.0-alpha</Version>
+    <Authors>silvije</Authors>
+    <Copyright>Copyright © Silvije Kalabic 2025 All rights reserved.</Copyright>
+    <PackageProjectUrl>https://github.com/kalabic/audioformatlib</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/kalabic/audioformatlib</RepositoryUrl>
+    <PackageTags>audio</PackageTags>
+    <PackageLicenseExpression>LGPL-2.1-only</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
 
   <ItemGroup>
     <None Remove="Resampler\README.md" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="..\..\doc\package\README.md">
+      <Pack>True</Pack>
+      <PackagePath>\</PackagePath>
+    </None>
   </ItemGroup>
 
 </Project>
