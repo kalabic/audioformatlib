@@ -38,7 +38,7 @@ https://github.com/naudio/NAudio/blob/master/NAudio.Core/Utils/CircularBuffer.cs
 
 using System.Diagnostics;
 
-namespace AudioFormatLib.Base
+namespace AudioFormatLib.Utils
 {
     /// <summary>
     /// A very basic circular buffer implementation
@@ -88,7 +88,7 @@ namespace AudioFormatLib.Base
                     Debug.Assert(writePosition == 0);
                     // must have wrapped round. Write to start
                     Array.Copy(data, offset + bytesWritten, buffer, writePosition, count - bytesWritten);
-                    writePosition += (count - bytesWritten);
+                    writePosition += count - bytesWritten;
                     bytesWritten = count;
                 }
                 byteCount += bytesWritten;
@@ -123,7 +123,7 @@ namespace AudioFormatLib.Base
                     // must have wrapped round. Read from start
                     Debug.Assert(readPosition == 0);
                     Array.Copy(buffer, readPosition, data, offset + bytesRead, count - bytesRead);
-                    readPosition += (count - bytesRead);
+                    readPosition += count - bytesRead;
                     bytesRead = count;
                 }
 
