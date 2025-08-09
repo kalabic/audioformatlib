@@ -6,9 +6,9 @@ namespace AudioFormatLib.Utils;
 /// <summary>
 /// Use one of following static members to create an instance of resampler:
 /// <list type="bullet">
-///     <item> To work with byte type inputs and outputs: <see cref="StreamResampler.NewBytePacketResampler"/> </item>
-///     <item> To work with short (signed 16-bit) type inputs and outputs: <see cref="StreamResampler.NewShortPacketResampler"/> </item>
-///     <item> To work with float type inputs and outputs: <see cref="StreamResampler.NewFloatPacketResampler"/> </item>
+///     <item> To work with byte type inputs and outputs: <see cref="AudioFrameResampler.NewBytePacketResampler"/> </item>
+///     <item> To work with short (signed 16-bit) type inputs and outputs: <see cref="AudioFrameResampler.NewShortPacketResampler"/> </item>
+///     <item> To work with float type inputs and outputs: <see cref="AudioFrameResampler.NewFloatPacketResampler"/> </item>
 /// </list>
 /// 
 /// Parameters:
@@ -18,16 +18,16 @@ namespace AudioFormatLib.Utils;
 ///     <item>inputSampleRate - Can be zero if parameter 'factor' is non-zero value.</item>
 ///     <item>outputSampleRate - Can be zero if parameter 'factor' is non-zero value.</item>
 ///     <item>numChannels - Number of audio channels in input stream. Supported values aree 1 and 2.</item>
-///     <item>sampleFormat - Input sample format. Supported value is <see cref="StreamResampler.SAMPLE_FMT_S16"/>, signed 16-bit integer.</item>
+///     <item>sampleFormat - Input sample format. Supported value is <see cref="AudioFrameResampler.SAMPLE_FMT_S16"/>, signed 16-bit integer.</item>
 ///     <item>outSampleFormat - Default is 0, the same as input sample format.</item>
 ///     <item>outChannels - Default is 0, the same as number of channels at input.</item>
 /// </list>
 /// FYI: Some of input/output conversions are still work in progress.
 /// </summary>
-public class StreamResampler 
-    : StreamResampler.IBytePacketResampler
-    , StreamResampler.IShortPacketResampler
-    , StreamResampler.IFloatPacketResampler
+public class AudioFrameResampler 
+    : AudioFrameResampler.IBytePacketResampler
+    , AudioFrameResampler.IShortPacketResampler
+    , AudioFrameResampler.IFloatPacketResampler
 {
     public const int SAMPLE_FMT_NONE = 0; // Defaults to input sample format.
     public const int SAMPLE_FMT_S16 = 1; // Signed 16 bit sample format.
@@ -78,7 +78,7 @@ public class StreamResampler
     /// 
     /// Create instance of resampler and return its <see cref="IBytePacketResampler"/> interface.
     /// 
-    /// <para>See summary for <see cref="StreamResampler"/> class for description of parameters.</para>
+    /// <para>See summary for <see cref="AudioFrameResampler"/> class for description of parameters.</para>
     /// </summary>
     public static IBytePacketResampler NewBytePacketResampler(bool highQuality,
                                                               float factor,
@@ -89,7 +89,7 @@ public class StreamResampler
                                                               int outSampleFormat = SAMPLE_FMT_NONE,
                                                               int outChannels = 0)
     {
-        return new StreamResampler(highQuality, factor, inputSampleRate, outputSampleRate, numChannels, sampleFormat, outSampleFormat, outChannels);
+        return new AudioFrameResampler(highQuality, factor, inputSampleRate, outputSampleRate, numChannels, sampleFormat, outSampleFormat, outChannels);
     }
 
 
@@ -112,7 +112,7 @@ public class StreamResampler
     /// 
     /// Create instance of resampler and return its <see cref="IShortPacketResampler"/> interface.
     /// 
-    /// <para>See summary for <see cref="StreamResampler"/> class for description of parameters.</para>
+    /// <para>See summary for <see cref="AudioFrameResampler"/> class for description of parameters.</para>
     /// </summary>
     public static IShortPacketResampler NewShortPacketResampler(bool highQuality,
                                                                 float factor,
@@ -123,7 +123,7 @@ public class StreamResampler
                                                                 int outSampleFormat = SAMPLE_FMT_NONE,
                                                                 int outChannels = 0)
     {
-        return new StreamResampler(highQuality, factor, inputSampleRate, outputSampleRate, numChannels, sampleFormat, outSampleFormat, outChannels);
+        return new AudioFrameResampler(highQuality, factor, inputSampleRate, outputSampleRate, numChannels, sampleFormat, outSampleFormat, outChannels);
     }
 
 
@@ -144,7 +144,7 @@ public class StreamResampler
     /// 
     /// Create instance of resampler and return its <see cref="IFloatPacketResampler"/> interface.
     /// 
-    /// <para>See summary for <see cref="StreamResampler"/> class for description of parameters.</para>
+    /// <para>See summary for <see cref="AudioFrameResampler"/> class for description of parameters.</para>
     /// </summary>
     public static IFloatPacketResampler NewFloatPacketResampler(bool highQuality,
                                                                 float factor,
@@ -155,7 +155,7 @@ public class StreamResampler
                                                                 int outSampleFormat = SAMPLE_FMT_NONE,
                                                                 int outChannels = 0)
     {
-        return new StreamResampler(highQuality, factor, inputSampleRate, outputSampleRate, numChannels, sampleFormat, outSampleFormat, outChannels);
+        return new AudioFrameResampler(highQuality, factor, inputSampleRate, outputSampleRate, numChannels, sampleFormat, outSampleFormat, outChannels);
     }
 
 
@@ -339,7 +339,7 @@ public class StreamResampler
 
     private long _outBytesGenerated = 0;
 
-    private StreamResampler(bool highQuality,
+    private AudioFrameResampler(bool highQuality,
                             float factor,
                             int inputSampleRate = 0,
                             int outputSampleRate = 0,
