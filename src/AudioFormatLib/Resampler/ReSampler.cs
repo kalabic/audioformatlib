@@ -67,10 +67,10 @@ namespace AudioFormatLib.Resampler
             /// Get the number of input samples available
             /// </summary>
             /// <returns>number of input samples available</returns>
-            int GetInputBufferLenght();
+            int GetInputBufferLength();
 
             /// <summary>
-            /// Copy lenght samples from the input buffer to the given array, starting at the 
+            /// Copy length samples from the input buffer to the given array, starting at the 
             /// given offset. Samples should be in the range -1.0f to 1.0f
             /// </summary>
             /// <param name="array">array to hold samples from the input buffer</param>
@@ -299,7 +299,7 @@ namespace AudioFormatLib.Resampler
             }
 
             int outBufferLen = output.GetOutputBufferLength();
-            int inBufferLen = input.GetInputBufferLenght();
+            int inBufferLen = input.GetInputBufferLength();
 
             float[] imp = _imp;
             float[] impD = _impD;

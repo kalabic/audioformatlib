@@ -1,86 +1,49 @@
-﻿namespace AudioFormatLib.Buffers;
+﻿using AudioFormatLib.IO;
+
+namespace AudioFormatLib.Buffers;
 
 /// <summary> WIP </summary>
-public class NullBuffer : Stream, IStreamBuffer
+public class NullBuffer : IAudioBuffer
 {
-    public bool IsClosed { get { return false; } }
+    public int AllocatedSize => throw new NotImplementedException();
 
-    public override bool CanRead => throw new NotImplementedException();
+    public int AvailableSpace => throw new NotImplementedException();
 
-    public override bool CanSeek => throw new NotImplementedException();
+    public bool IsClosed => throw new NotImplementedException();
 
-    public override bool CanWrite => throw new NotImplementedException();
-
-    public override long Length => throw new NotImplementedException();
-
-    public override long Position { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
-
-    public void Cancel()
-    {
-        throw new NotImplementedException();
-    }
+    public int StoredByteCount => throw new NotImplementedException();
 
     public void ClearBuffer()
     {
         throw new NotImplementedException();
     }
 
-    public override void Flush()
+    public void CloseBuffer()
     {
         throw new NotImplementedException();
     }
 
-    public int GetBytesAvailable()
+    public void Dispose()
     {
         throw new NotImplementedException();
     }
 
-    public int GetBytesUnused()
+    public IAudioBufferInput GetBufferInput()
     {
         throw new NotImplementedException();
     }
 
-    public int GetBufferRequest()
+    public IAudioBufferOutput GetBufferOutput()
     {
         throw new NotImplementedException();
     }
 
-    public override int Read(byte[] buffer, int offset, int count)
+    public IAudioStreamInput GetStreamInput()
     {
         throw new NotImplementedException();
     }
 
-    public override long Seek(long offset, SeekOrigin origin)
-    {
-        throw new NotImplementedException();
-    }
-
-    public void SetBufferRequest(int value)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void SetLength(long value)
-    {
-        throw new NotImplementedException();
-    }
-
-    public override void Write(byte[] buffer, int offset, int count)
-    {
-        throw new NotImplementedException();
-    }
-
-    public int MovePacket(IStreamBuffer other, byte[] buffer)
-    {
-        throw new NotImplementedException();
-    }
-
-    public Stream GetInputStream()
-    {
-        throw new NotImplementedException();
-    }
-
-    public Stream GetOutputStream()
+    public IAudioStreamOutput GetStreamOutput()
     {
         throw new NotImplementedException();
     }

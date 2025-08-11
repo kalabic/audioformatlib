@@ -29,11 +29,11 @@ public struct AFrameFormat
     /// Just to be clear here, because the term "sample" is overloaded in audio terminology.
     ///
     /// </summary>
-    public int FrameSampleSize { get { return SampleFormat.Size() * ChannelFormat.Count; } }
+    public int FrameSampleSize { get { return SampleFormat.Size() * ChannelLayout.Count; } }
 
     public ASampleFormat SampleFormat;
 
-    public AChannelFormat ChannelFormat;
+    public AChannelLayout ChannelLayout;
 
     public int SampleRate;
 
@@ -42,7 +42,7 @@ public struct AFrameFormat
     {
         SampleFormat = format;
         SampleRate = sampleRate;
-        ChannelFormat = new AChannelFormat(numChannels);
+        ChannelLayout = new AChannelLayout(numChannels);
     }
 
     public long SampleCountFromBufferSize(long size)

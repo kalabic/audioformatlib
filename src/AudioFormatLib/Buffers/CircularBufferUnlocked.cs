@@ -36,29 +36,45 @@ https://github.com/naudio/NAudio/blob/master/NAudio.Core/Utils/CircularBuffer.cs
 */
 
 
+using AudioFormatLib.IO;
 using System.Diagnostics;
 
-namespace AudioFormatLib.Utils
+namespace AudioFormatLib.Buffers
 {
     /// <summary>
     /// A very basic circular buffer implementation
     /// </summary>
-    public class CircularBuffer
+    public class CircularBufferUnlocked : DisposableBuffer, IUnsafeBuffer
     {
-        private readonly byte[] buffer;
-        private readonly object lockObject;
+        public bool IsOpen { get { return isOpen; } }
+        public long TotalRead { get { return totalRead; } }
+        public long TotalWritten { get { return totalWritten; } }
+
+        private byte[] buffer;
         private int writePosition;
         private int readPosition;
         private int byteCount;
+        private bool isOpen = true;
+        private long totalRead;
+        private long totalWritten;
 
         /// <summary>
         /// Create a new circular buffer
         /// </summary>
         /// <param name="size">Max buffer size in bytes</param>
-        public CircularBuffer(int size)
+        public CircularBufferUnlocked(int size)
         {
-            buffer = new byte[size];
-            lockObject = new object();
+            isOpen = (size > 0);
+            buffer = isOpen ? new byte[size] : Array.Empty<byte>();
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Close();
+            }
+            base.Dispose(disposing);
         }
 
         /// <summary>
@@ -68,18 +84,24 @@ namespace AudioFormatLib.Utils
         /// <param name="offset">Offset into data</param>
         /// <param name="count">Number of bytes to write</param>
         /// <returns>number of bytes written</returns>
-        public int Write(byte[] data, int offset, int count)
+        public virtual unsafe int Write(byte[] data, int offset, int count)
         {
-            lock (lockObject)
+            fixed (byte* dataPtr = data) { return Write(dataPtr, offset, count); }
+        }
+        public virtual unsafe int Write(byte* dataPtr, int offset, int count)
+        {
+            if (isOpen)
             {
                 var bytesWritten = 0;
+                fixed (byte* bufferPtr = buffer) {
+
                 if (count > buffer.Length - byteCount)
                 {
                     count = buffer.Length - byteCount;
                 }
                 // write to end
                 int writeToEnd = Math.Min(buffer.Length - writePosition, count);
-                Array.Copy(data, offset, buffer, writePosition, writeToEnd);
+                Buffer.MemoryCopy(dataPtr + offset, bufferPtr + writePosition, buffer.Length - writePosition, writeToEnd);
                 writePosition += writeToEnd;
                 writePosition %= buffer.Length;
                 bytesWritten += writeToEnd;
@@ -87,13 +109,17 @@ namespace AudioFormatLib.Utils
                 {
                     Debug.Assert(writePosition == 0);
                     // must have wrapped round. Write to start
-                    Array.Copy(data, offset + bytesWritten, buffer, writePosition, count - bytesWritten);
+                    Buffer.MemoryCopy(dataPtr + offset + bytesWritten, bufferPtr, buffer.Length, count - bytesWritten);
                     writePosition += count - bytesWritten;
                     bytesWritten = count;
                 }
                 byteCount += bytesWritten;
+                totalWritten += bytesWritten;
+
+                } // fixed(byte* bufferPtr = data)
                 return bytesWritten;
             }
+            return 0;
         }
 
         /// <summary>
@@ -103,17 +129,24 @@ namespace AudioFormatLib.Utils
         /// <param name="offset">Offset into read buffer</param>
         /// <param name="count">Bytes to read</param>
         /// <returns>Number of bytes actually read</returns>
-        public int Read(byte[] data, int offset, int count)
+        public virtual unsafe int Read(byte[] data, int offset, int count)
         {
-            lock (lockObject)
+            fixed(byte* dataPtr = data) { return Read(dataPtr, offset, count); }
+        }
+        public virtual unsafe int Read(byte* dataPtr, int offset, int count)
+        {
+            if (isOpen)
             {
                 if (count > byteCount)
                 {
                     count = byteCount;
                 }
                 int bytesRead = 0;
+
+                fixed (byte* bufferPtr = buffer) {
+                
                 int readToEnd = Math.Min(buffer.Length - readPosition, count);
-                Array.Copy(buffer, readPosition, data, offset, readToEnd);
+                Buffer.MemoryCopy(bufferPtr + readPosition, dataPtr + offset, count, readToEnd);
                 bytesRead += readToEnd;
                 readPosition += readToEnd;
                 readPosition %= buffer.Length;
@@ -122,15 +155,18 @@ namespace AudioFormatLib.Utils
                 {
                     // must have wrapped round. Read from start
                     Debug.Assert(readPosition == 0);
-                    Array.Copy(buffer, readPosition, data, offset + bytesRead, count - bytesRead);
+                    Buffer.MemoryCopy(bufferPtr, dataPtr + offset + bytesRead, count - bytesRead, count - bytesRead);
                     readPosition += count - bytesRead;
                     bytesRead = count;
                 }
 
                 byteCount -= bytesRead;
+                totalRead += bytesRead;
                 Debug.Assert(byteCount >= 0);
+                }
                 return bytesRead;
             }
+            return 0;
         }
 
         /// <summary>
@@ -145,22 +181,23 @@ namespace AudioFormatLib.Utils
         {
             get
             {
-                lock (lockObject)
-                {
-                    return byteCount;
-                }
+                return byteCount;
             }
+        }
+
+        public virtual void Close()
+        {
+            ResetInner();
+            isOpen = false;
+            buffer = Array.Empty<byte>();
         }
 
         /// <summary>
         /// Resets the buffer
         /// </summary>
-        public void Reset()
+        public virtual void Reset()
         {
-            lock (lockObject)
-            {
-                ResetInner();
-            }
+            ResetInner();
         }
 
         private void ResetInner()
@@ -174,9 +211,9 @@ namespace AudioFormatLib.Utils
         /// Advances the buffer, discarding bytes
         /// </summary>
         /// <param name="count">Bytes to advance</param>
-        public void Advance(int count)
+        public virtual void Advance(int count)
         {
-            lock (lockObject)
+            if (isOpen)
             {
                 if (count >= byteCount)
                 {

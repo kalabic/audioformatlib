@@ -50,30 +50,32 @@
  *
  *****************************************************************************/
 
+using AudioFormatLib.Utils;
+
 namespace AudioFormatLib.Resampler
 {
     /// <summary>
-    /// Every audio channel has its own indenpendent resampler. It is a wrapper around instance of <see cref="ReSampler"/> and
-    /// provides it with an interface for on-the-fly conversion.
+    /// 
+    /// Single audio channel resampler is a wrapper around instance of <see cref="ReSampler"/> and
+    /// provides it with an interface for on-the-fly conversion of input and output sample data.
+    /// 
+    /// <para> For now, the only supported sample format is signed 16-bit. </para>
+    /// 
     /// </summary>
-    public unsafe class ChannelResampler 
+    public unsafe class ChannelResampler
         : ReSampler.IInputProducer
         , ReSampler.IOutputConsumer
         , IDisposable
     {
-        /// <summary>
-        /// Value used by Apple (Core Audio)1, ALSA2, MatLab2, sndlib2.
-        /// <para>[1] Link: <a href="https://web.archive.org/web/20210210064026/http://blog.bjornroche.com/2009/12/int-float-int-its-jungle-out-there.html">Int->Float->Int: It's a jungle out there! (Web Archive)</a></para>
-        /// <para>[2] Link: <a href="http://www.mega-nerd.com/libsndfile/FAQ.html#Q010">Q10: Reading a 16 bit PCM file as normalised floats...</a></para>
-        /// </summary>
-        private const float CONVERT_FACTOR_SHORT = 32768.0f;
-
-
         private ReSampler _resampler;
 
-        private int _ioff;
+        private ConverterParams _inputParams;
 
-        private int _istep;
+        private ConverterParams _outputParams;
+
+        private AConversion_ShortPtr_To_Float _inputFunction;
+
+        private AConversion_Float_To_ShortPtr _outputFunction;
 
         private short* _input = null;
 
@@ -87,13 +89,50 @@ namespace AudioFormatLib.Resampler
 
         private long _outputSampleCount = 0;
 
-        internal ChannelResampler(bool highQuality, float factor, int ioff, int istep)
+
+        /// <summary>
+        /// 
+        /// Create indenpendent instance of <see cref="ReSampler"/>. It is necessary to create an instance for
+        /// each and every channel in case of multi-channel audio frame.
+        /// 
+        /// </summary>
+        /// <param name="highQuality"></param>
+        /// <param name="factor"></param>
+        /// <param name="channel"> The same channel will be read from at input and written to at output. </param>
+        /// <exception cref="NotImplementedException"></exception>
+        internal ChannelResampler(bool highQuality, float factor, AChannelId channel)
         {
             _resampler = new(highQuality, factor, factor);
-            _ioff = ioff;
-            _istep = istep;
+
+            var convertIn = ChannelConverter.Get_ShortPtr_To_Float_Func(channel, AChannelId.MonoTrack);
+            var convertOut = ChannelConverter.Get_Float_To_ShortPtr_Func(AChannelId.MonoTrack, channel);
+            if (convertIn is null || convertOut is null)
+            {
+                throw new NotImplementedException("Sample conversion function not found.");
+            }
+
+            _inputFunction = convertIn.Value.Func;
+            _inputParams = convertIn.Value.Params;
+            _outputFunction = convertOut.Value.Func;
+            _outputParams = convertOut.Value.Params;
         }
 
+
+        /// <summary>
+        /// 
+        /// Both <paramref name="input"/> and <paramref name="output"/> can be a multi-channel audio frame or
+        /// a simple mono audio type. This function will access only the channel specified in constructor using
+        /// provided channel id.
+        /// 
+        /// </summary>
+        /// <param name="factor"></param>
+        /// <param name="lastPacket"></param>
+        /// <param name="input"></param>
+        /// <param name="inputSize"></param>
+        /// <param name="output"></param>
+        /// <param name="outputSize"></param>
+        /// <returns></returns>
+        /// <exception cref="InvalidOperationException"></exception>
         internal unsafe long ProcessInput(float factor, bool lastPacket, byte* input, long inputSize, byte* output, long outputSize)
         {
             _input = (short *)input;
@@ -112,8 +151,8 @@ namespace AudioFormatLib.Resampler
             return _outputSampleCount * sizeof(short);
         }
 
-        /// <summary> See summary for <see cref="ReSampler.IInputProducer.GetInputBufferLenght"/> </summary>
-        public int GetInputBufferLenght()
+        /// <summary> See summary for <see cref="ReSampler.IInputProducer.GetInputBufferLength"/> </summary>
+        public int GetInputBufferLength()
         {
             return (int)(_inputSampleCount - _inputSamplesUsed);
         }
@@ -127,22 +166,14 @@ namespace AudioFormatLib.Resampler
         /// <summary> See summary for <see cref="ReSampler.IInputProducer.ProduceInput"/> </summary>
         public void ProduceInput(float[] array, int offset, int length)
         {
-            for (int i = 0; i < length; i++)
-            {
-                int index = (int)(_ioff + ((_inputSamplesUsed + i) * _istep));
-                array[offset + i] = _input[index] / CONVERT_FACTOR_SHORT;
-            }
+            _inputFunction(_inputParams, _input, _inputSamplesUsed, length, array, offset);
             _inputSamplesUsed += length;
         }
 
         /// <summary> See summary for <see cref="ReSampler.IOutputConsumer.ConsumeOutput"/> </summary>
         public void ConsumeOutput(float[] array, int offset, int length)
         {
-            for (int i = 0; i < length; i++)
-            {
-                int index = (int)(_ioff + ((_outputSampleCount + i) * _istep));
-                _output[index] = (short)(array[offset + i] * CONVERT_FACTOR_SHORT);
-            }
+            _outputFunction(_outputParams, array, offset, length, _output, _outputSampleCount);
             _outputSampleCount += length;
         }
 
