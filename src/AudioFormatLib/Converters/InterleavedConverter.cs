@@ -1,4 +1,6 @@
-﻿namespace AudioFormatLib.Utils;
+﻿using AudioFormatLib.Utils;
+
+namespace AudioFormatLib.Converters;
 
 
 /// <summary>
@@ -15,8 +17,8 @@ public static class InterleavedConverter
         {
             FloatPtr_To_ShortPtr_WithOffset(
                 context.SrcChannel.ChannelCount, context.DstChannel.ChannelCount,
-                inputPtr + (offset * context.SrcChannel.ChannelCount) + context.SrcChannel.Index,
-                output + (outOffset * context.DstChannel.ChannelCount) + context.DstChannel.Index,
+                inputPtr + offset * context.SrcChannel.ChannelCount + context.SrcChannel.Index,
+                output + outOffset * context.DstChannel.ChannelCount + context.DstChannel.Index,
                 (int)length);
         }
     }
@@ -25,7 +27,7 @@ public static class InterleavedConverter
     {
         for (int i = 0; i < length; i++)
         {
-            *output = (short)((*input) * ConverterParams.CONVERT_FACTOR_SHORT);
+            *output = (short)(*input * ConverterParams.CONVERT_FACTOR_SHORT);
             input += cni;
             output += cno;
         }
@@ -37,8 +39,8 @@ public static class InterleavedConverter
         {
             ShortPtr_To_FloatPtr_WithOffset(
                 context.SrcChannel.ChannelCount, context.DstChannel.ChannelCount, 
-                input + (offset * context.SrcChannel.ChannelCount) + context.SrcChannel.Index,
-                outputPtr + (outOffset * context.DstChannel.ChannelCount) + context.DstChannel.Index,
+                input + offset * context.SrcChannel.ChannelCount + context.SrcChannel.Index,
+                outputPtr + outOffset * context.DstChannel.ChannelCount + context.DstChannel.Index,
                 (int)length);
         }
     }
@@ -47,7 +49,7 @@ public static class InterleavedConverter
     {
         for (int i = 0; i < length; i++)
         {
-            *output = (*input) / ConverterParams.CONVERT_FACTOR_SHORT;
+            *output = *input / ConverterParams.CONVERT_FACTOR_SHORT;
             input += cni;
             output += cno;
         }

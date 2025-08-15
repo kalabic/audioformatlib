@@ -1,18 +1,22 @@
-﻿namespace AudioFormatLib.Utils;
+﻿using AudioFormatLib.Utils;
+
+namespace AudioFormatLib.Converters;
 
 
 /// <summary>
 /// 
-/// Convert samples from interleaved source channel into destination frame with a single channel.
+/// Convert samples from a simple single-channel source frame into destination frame with
+/// a number of interleaved channels.
 /// 
 /// </summary>
-public static class InterleavedToPlanar
+public static class PlanarToInterleaved
 {
     public static unsafe void Float_To_ShortPtr(ConverterParams context, float[] input, long offset, long length, short* output, long outOffset)
     {
         fixed (float* inputPtr = input)
         {
-            FloatPtr_To_ShortPtr_WithOffset(context.SrcChannel.ChannelCount, inputPtr + (offset * context.SrcChannel.ChannelCount) + context.SrcChannel.Index, output + outOffset, (int)length);
+            FloatPtr_To_ShortPtr_WithOffset(
+                context.DstChannel.ChannelCount, inputPtr + offset, output + outOffset * context.DstChannel.ChannelCount + context.DstChannel.Index, (int)length);
         }
     }
 
@@ -20,8 +24,9 @@ public static class InterleavedToPlanar
     {
         for (int i = 0; i < length; i++)
         {
-            *output++ = (short)((*input) * ConverterParams.CONVERT_FACTOR_SHORT);
-            input += cn;
+            *output = (short)( *input * ConverterParams.CONVERT_FACTOR_SHORT );
+            input++;
+            output += cn;
         }
     }
 
@@ -30,7 +35,7 @@ public static class InterleavedToPlanar
         fixed (float* outputPtr = output)
         {
             ShortPtr_To_FloatPtr_WithOffset(
-                context.SrcChannel.ChannelCount, input + (offset * context.SrcChannel.ChannelCount) + context.SrcChannel.Index, outputPtr + outOffset, (int)length);
+                context.DstChannel.ChannelCount, input + offset, outputPtr + outOffset * context.DstChannel.ChannelCount + context.DstChannel.Index, (int)length);
         }
     }
 
@@ -38,8 +43,8 @@ public static class InterleavedToPlanar
     {
         for (int i = 0; i < length; i++)
         {
-            *output++ = (*input) / ConverterParams.CONVERT_FACTOR_SHORT;
-            input += cn;
+            *output = *input++ / ConverterParams.CONVERT_FACTOR_SHORT;
+            output += cn;
         }
     }
 }

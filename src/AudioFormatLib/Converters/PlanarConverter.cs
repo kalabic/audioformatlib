@@ -1,4 +1,6 @@
-﻿namespace AudioFormatLib.Utils;
+﻿using AudioFormatLib.Utils;
+
+namespace AudioFormatLib.Converters;
 
 
 /// <summary>
@@ -20,7 +22,7 @@ public static class PlanarConverter
     {
         for (int i = 0; i < length; i++)
         {
-            *output++ = (short)((*input++) * ConverterParams.CONVERT_FACTOR_SHORT);
+            *output++ = (short)(*input++ * ConverterParams.CONVERT_FACTOR_SHORT);
         }
     }
 
@@ -36,7 +38,7 @@ public static class PlanarConverter
     {
         for (int i = 0; i < length; i++)
         {
-            *output++ = (*input++) / ConverterParams.CONVERT_FACTOR_SHORT;
+            *output++ = *input++ / ConverterParams.CONVERT_FACTOR_SHORT;
         }
     }
 }

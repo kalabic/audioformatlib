@@ -85,7 +85,7 @@ public unsafe class AudioFrameResampler
 
     private long _outBytesGenerated = 0;
 
-    private AudioFrameResampler(AResamplerParams parameters)
+    public AudioFrameResampler(AResamplerParams parameters)
     {
         _params = parameters;
 

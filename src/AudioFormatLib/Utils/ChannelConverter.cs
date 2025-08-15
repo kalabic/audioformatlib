@@ -1,4 +1,6 @@
-﻿namespace AudioFormatLib.Utils;
+﻿using AudioFormatLib.Converters;
+
+namespace AudioFormatLib.Utils;
 
 
 public static class ChannelConverter
