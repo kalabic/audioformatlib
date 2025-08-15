@@ -1,6 +1,5 @@
 ﻿using AudioFormatLib.IO;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 
 namespace AudioFormatLib.Utils;
 
@@ -14,10 +13,6 @@ internal unsafe class SampleProducer : IInputProducer<float>
 
     private readonly AConversion_ShortPtr_To_Float _function;
 
-    private object? _inputObj = null;
-
-    private GCHandle _inputHandle;
-
     private byte* _input = null;
 
     private long _sampleCount = 0;
@@ -29,13 +24,6 @@ internal unsafe class SampleProducer : IInputProducer<float>
     {
         _params = parameters;
         _function = function;
-    }
-
-    public void SetInput<T>(T[] input, long count) where T : unmanaged
-    {
-        _inputObj = input;
-        _inputHandle = GCHandle.Alloc(input, GCHandleType.Pinned); // Pin permanently
-        SetInput((byte*)_inputHandle.AddrOfPinnedObject(), count); // Use pinned address
     }
 
     public void SetInput<T>(T* ptr, long count) where T : unmanaged
@@ -54,11 +42,6 @@ internal unsafe class SampleProducer : IInputProducer<float>
 
     public void ReleaseInput()
     {
-        if (_inputHandle.IsAllocated)
-        {
-            _inputHandle.Free(); // Unpin
-        }
-        _inputObj = null;
         _input = null;
         _sampleCount = 0;
         _samplesUsed = 0;

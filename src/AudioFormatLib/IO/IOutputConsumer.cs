@@ -18,7 +18,7 @@ namespace AudioFormatLib.IO;
 /// Callback for consuming samples. Enalbes on-the-fly conversion between sample types
 /// (signed 16-bit integers to floats, for example) and/or writing directly to an output stream.
 /// </summary>
-internal interface IOutputConsumer<T> where T : unmanaged
+public interface IOutputConsumer<T> where T : unmanaged
 {
     long SamplesWritten { get; }
 

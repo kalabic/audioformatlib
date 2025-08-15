@@ -12,13 +12,13 @@
  * libresample 0.1.3
  * Copyright (c) 2003 Dominic Mazzoni
  *
- * Resample 1.7
+ * Process 1.7
  * Copyright (c) 1994-2002 Julius O. Smith III
  * 
  * 'AudioFormatLib' is using C# code that is a fork from 'libresamplesharp'.
  * 'libresamplesharp' is a C# port of David Nault's 'libresample4j',
  * which is a Java port of Dominic Mazzoni's 'libresample 0.1.3',
- * which is in turn based on Julius Smith's 'Resample 1.7' library.
+ * which is in turn based on Julius Smith's 'Process 1.7' library.
  *
  * This product includes software derived from the work of
  * Julius Smith, Dominic Mazzoni, David Nault, and others.
