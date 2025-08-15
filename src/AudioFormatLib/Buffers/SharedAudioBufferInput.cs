@@ -1,22 +1,33 @@
 ﻿using AudioFormatLib.IO;
-using System.Runtime.CompilerServices;
 
 namespace AudioFormatLib.Buffers;
 
 
-internal class SharedAudioBufferInput : IAudioStreamInput, IAudioBufferInput
+internal class SharedAudioBufferInput : IAudioBufferInput
 {
+    public AFrameFormat Format { get { return _format; } }
+
+
+
+    private readonly AFrameFormat _format;
+
     /// <summary> Externally managed buffer. </summary>
     private readonly IUnsafeBuffer _buffer;
 
-    public SharedAudioBufferInput(IUnsafeBuffer sharedBuffer)
+    public SharedAudioBufferInput(AFrameFormat format, IUnsafeBuffer sharedBuffer)
     {
+        _format = format;
         _buffer = sharedBuffer;
     }
 
-    public override void Write(byte[] buffer, int offset, int count)
+    public void ClearBuffer()
     {
-        _buffer.Write(buffer, offset, count);
+        _buffer.ClearBuffer();
+    }
+
+    public int Write(byte[] buffer, int offset, int count)
+    {
+        return _buffer.Write(buffer, offset, count);
     }
 
     public int Write(short[] buffer, int offset, int count)

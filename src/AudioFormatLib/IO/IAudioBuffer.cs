@@ -8,19 +8,17 @@ public interface IAudioBuffer : IDisposable
 
     int AvailableSpace { get; }
 
+    AFrameFormat Format { get; }
+
     bool IsClosed { get; }
 
     int StoredByteCount { get; }
 
+    IAudioInputs Input { get; }
+
+    IAudioOutputs Output { get; }
+
     void ClearBuffer();
 
     void CloseBuffer();
-
-    IAudioBufferInput GetBufferInput();
-
-    IAudioBufferOutput GetBufferOutput();
-
-    IAudioStreamInput GetStreamInput();
-
-    IAudioStreamOutput GetStreamOutput();
 }

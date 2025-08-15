@@ -195,7 +195,7 @@ namespace AudioFormatLib.Buffers
         /// <summary>
         /// Resets the buffer
         /// </summary>
-        public virtual void Reset()
+        public virtual void ClearBuffer()
         {
             ResetInner();
         }

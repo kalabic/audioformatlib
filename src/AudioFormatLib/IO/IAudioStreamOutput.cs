@@ -3,11 +3,13 @@
 
 /// <summary>
 /// 
-/// Audio buffer provides this interface as its output, so applications can read data from it.
+/// Provides System.IO.Stream interface as buffer output, so applications can read data using it.
 /// 
 /// </summary>
 public abstract class IAudioStreamOutput : Stream
 {
+    public abstract AFrameFormat Format { get; }
+
     //
     // System.IO.Stream
     //

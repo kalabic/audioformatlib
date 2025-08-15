@@ -13,6 +13,12 @@ public class NullBuffer : IAudioBuffer
 
     public int StoredByteCount => throw new NotImplementedException();
 
+    public AFrameFormat Format => throw new NotImplementedException();
+
+    public IAudioInputs Input => throw new NotImplementedException();
+
+    public IAudioOutputs Output => throw new NotImplementedException();
+
     public void ClearBuffer()
     {
         throw new NotImplementedException();
@@ -24,26 +30,6 @@ public class NullBuffer : IAudioBuffer
     }
 
     public void Dispose()
-    {
-        throw new NotImplementedException();
-    }
-
-    public IAudioBufferInput GetBufferInput()
-    {
-        throw new NotImplementedException();
-    }
-
-    public IAudioBufferOutput GetBufferOutput()
-    {
-        throw new NotImplementedException();
-    }
-
-    public IAudioStreamInput GetStreamInput()
-    {
-        throw new NotImplementedException();
-    }
-
-    public IAudioStreamOutput GetStreamOutput()
     {
         throw new NotImplementedException();
     }

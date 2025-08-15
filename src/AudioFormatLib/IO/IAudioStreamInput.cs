@@ -3,11 +3,13 @@
 
 /// <summary>
 /// 
-/// Audio buffer provides this interface as its input, so applications can write data into it.
+/// Provides System.IO.Stream interface as buffer input, so applications can write data using it.
 /// 
 /// </summary>
 public abstract class IAudioStreamInput : Stream
 {
+    public abstract AFrameFormat Format { get; }
+
     //
     // System.IO.Stream
     //

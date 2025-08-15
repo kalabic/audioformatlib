@@ -76,7 +76,7 @@ public class CircularBufferWaitable : CircularBufferUnlocked
     }
 
     //
-    // Group: Read, Advance, Reset
+    // Group: Read, Advance, ClearBuffer
     //
 
     private bool WaitForStoredData(int length)
@@ -125,11 +125,11 @@ public class CircularBufferWaitable : CircularBufferUnlocked
         }
     }
 
-    public override void Reset()
+    public override void ClearBuffer()
     {
         lock (_lock)
         {
-            base.Reset();
+            base.ClearBuffer();
         }
     }
 }

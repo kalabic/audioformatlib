@@ -61,7 +61,7 @@ public struct AResamplerParams
         OutputSampleRate = AudioFrameTools.CalcOutputSampleRate(factor, inputSampleRate, outputSampleRate);
         NumChannels = numChannels;
         SampleFormat = sampleFormat;
-        OutSampleFormat = outSampleFormat;
+        OutSampleFormat = (outSampleFormat == ASampleFormat.NONE) ? sampleFormat : outSampleFormat;
         OutChannels = outChannels;
     }
 

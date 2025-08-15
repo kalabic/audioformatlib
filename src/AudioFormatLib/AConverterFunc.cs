@@ -37,7 +37,7 @@ public unsafe delegate void AConversion_Float_To_ShortPtr(
     float[] input,
     long offset,
     long length,
-    short* output,
+    byte* output,
     long outOffset
 );
 
@@ -60,7 +60,7 @@ public unsafe delegate void AConversion_Float_To_ShortPtr(
 /// 
 public unsafe delegate void AConversion_ShortPtr_To_Float(
     ConverterParams cp,
-    short* input,
+    byte* input,
     long offset,
     long length,
     float[] output,

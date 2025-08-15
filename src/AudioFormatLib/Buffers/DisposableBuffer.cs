@@ -5,9 +5,21 @@ namespace AudioFormatLib.Buffers;
 
 public abstract class DisposableBuffer : IDisposable
 {
+    public enum STATUS : int
+    {
+        NOT_DISPOSED,
+        DISPOSED,
+        FINALIZED
+    }
+
     public bool IsDisposed { get { return _isDisposed != 0; } }
 
+    public STATUS DisposeStatus { get { return _status; } }
+
+
     private int _isDisposed;
+
+    private STATUS _status = STATUS.NOT_DISPOSED;
 
     ~DisposableBuffer()
     {
@@ -17,6 +29,7 @@ public abstract class DisposableBuffer : IDisposable
             Debug.Assert(false, "Object was not disposed properly.");
 #endif
             Dispose(false);
+            Debug.Assert(_status == STATUS.FINALIZED, "Overridden dispose method not invoked. Is this what you wanted?");
         }
     }
 
@@ -25,6 +38,7 @@ public abstract class DisposableBuffer : IDisposable
         if (Interlocked.CompareExchange(ref _isDisposed, 1, 0) == 0)
         {
             Dispose(true);
+            Debug.Assert(_status == STATUS.DISPOSED, "Overridden dispose method not invoked. Is this what you wanted?");
             GC.SuppressFinalize(this);
         }
     }
@@ -33,11 +47,13 @@ public abstract class DisposableBuffer : IDisposable
     {
         if (disposing)
         {
-            // Still safe invoke Dispose(), CloseBuffer(), etc. on managed objects.
+            // Still safe to invoke Dispose(), CloseBuffer(), etc. on managed objects.
+            _status = STATUS.DISPOSED;
         }
-        /* else { danger zone for managed objects } */
-
-        // - free unmanaged resources (unmanaged objects).
-        // - safe to set large fields to null
+        else
+        {
+            // Danger zone for managed objects.
+            _status = STATUS.FINALIZED;
+        }
     }
 }

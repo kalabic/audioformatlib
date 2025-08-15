@@ -1,4 +1,5 @@
-﻿
+﻿using AudioFormatLib.Buffers;
+using AudioFormatLib.IO;
 using System.Diagnostics;
 
 namespace AudioFormatLib.Utils;
@@ -159,5 +160,49 @@ public static class AudioFrameTools
         }
 
         return outputSampleRate;
+    }
+
+    internal static IUnsafeBuffer CreateUnsafeBuffer(ABufferParams bparams)
+    {
+        if (bparams.WaitForCompleteRead)
+        {
+            return new CircularBufferWaitable(bparams.BufferSize);
+        }
+        else
+        {
+            return new CircularBufferLocked(bparams.BufferSize);
+        }
+    }
+
+    internal static AudioInputs CreateInputsWithBuffer(ABufferParams bparams, IUnsafeBuffer buffer)
+    {
+        return new AudioInputs(bparams, buffer);
+    }
+
+    internal static AudioOutputs CreateOutputsWithBuffer(ABufferParams bparams, IUnsafeBuffer buffer)
+    {
+        return new AudioOutputs(bparams, buffer);
+    }
+
+    internal static SampleProducer CreateSampleProducer(AChannelId channel)
+    {
+        var convertIn = ChannelConverter.Get_ShortPtr_To_Float_Func(channel, AChannelId.MonoTrack);
+        if (convertIn is null)
+        {
+            throw new NotImplementedException("Sample conversion function not found.");
+        }
+
+        return new SampleProducer(convertIn.Value.Params, convertIn.Value.Func);
+    }
+
+    internal static SampleConsumer CreateSampleConsumer(AChannelId channel)
+    {
+        var convertOut = ChannelConverter.Get_Float_To_ShortPtr_Func(AChannelId.MonoTrack, channel);
+        if (convertOut is null)
+        {
+            throw new NotImplementedException("Sample conversion function not found.");
+        }
+
+        return new SampleConsumer(convertOut.Value.Params, convertOut.Value.Func);
     }
 }

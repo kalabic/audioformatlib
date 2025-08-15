@@ -22,7 +22,7 @@ public class CircularBufferLocked : CircularBufferUnlocked
     }
 
     //
-    // Group: Read, Advance, Reset
+    // Group: Read, Advance, ClearBuffer
     //
 
     public override int Read(byte[] data, int offset, int length)
@@ -41,11 +41,11 @@ public class CircularBufferLocked : CircularBufferUnlocked
         }
     }
 
-    public override void Reset()
+    public override void ClearBuffer()
     {
         lock (_lock)
         {
-            base.Reset();
+            base.ClearBuffer();
         }
     }
 }

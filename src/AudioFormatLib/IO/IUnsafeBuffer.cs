@@ -14,7 +14,7 @@ internal interface IUnsafeBuffer
 
     unsafe int Read(byte* dataPtr, int offset, int count);
 
-    void Reset();
+    void ClearBuffer();
 
     int Write(byte[] data, int offset, int count);
 

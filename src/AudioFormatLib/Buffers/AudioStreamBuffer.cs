@@ -1,5 +1,6 @@
 ﻿using AudioFormatLib.IO;
 using AudioFormatLib.System;
+using AudioFormatLib.Utils;
 using System.Diagnostics;
 
 namespace AudioFormatLib.Buffers;
@@ -12,20 +13,29 @@ public class AudioStreamBuffer : DisposableBuffer, IAudioBuffer
 
     public int AvailableSpace { get { return _buffer.MaxLength - _buffer.Count; } }
 
+    public AFrameFormat Format { get { return _format; } }
+
     public bool IsClosed { get { return IsDisposed; } }
 
     public int StoredByteCount { get { return _buffer.Count; } }
 
+    public IAudioInputs Input { get { return _inputs; } }
+
+    public IAudioOutputs Output { get { return _outputs; } }
+
+
 
     private ABufferParams _bparams;
+
+    private readonly AFrameFormat _format;
 
     private CancellableEventSlim _streamEvent;
 
     private IUnsafeBuffer _buffer;
 
-    private SharedAudioBufferInput _input;
+    private AudioInputs _inputs;
 
-    private SharedAudioBufferOutput _output;
+    private AudioOutputs _outputs;
 
     protected int _bufferRequest = 0;
 
@@ -34,17 +44,11 @@ public class AudioStreamBuffer : DisposableBuffer, IAudioBuffer
         Debug.Assert(bparams.BufferSize > 0);
 
         _bparams = bparams;
+        _format = bparams.Format;
         _streamEvent = new CancellableEventSlim(cancellation);
-        if (bparams.WaitForCompleteRead)
-        {
-            _buffer = new CircularBufferWaitable(bparams.BufferSize);
-        }
-        else
-        {
-            _buffer = new CircularBufferLocked(bparams.BufferSize);
-        }
-        _input = new SharedAudioBufferInput(_buffer);
-        _output = new SharedAudioBufferOutput(_buffer);
+        _buffer = AudioFrameTools.CreateUnsafeBuffer(bparams);
+        _inputs = AudioFrameTools.CreateInputsWithBuffer(bparams, _buffer);
+        _outputs = AudioFrameTools.CreateOutputsWithBuffer(bparams, _buffer);
     }
 
     public AudioStreamBuffer(ABufferParams bufferParams)
@@ -62,26 +66,6 @@ public class AudioStreamBuffer : DisposableBuffer, IAudioBuffer
         base.Dispose(disposing);
     }
 
-    public IAudioBufferInput GetBufferInput()
-    {
-        return _input;
-    }
-
-    public IAudioBufferOutput GetBufferOutput()
-    {
-        return _output;
-    }
-
-    public IAudioStreamInput GetStreamInput()
-    {
-        return _input;
-    }
-
-    public IAudioStreamOutput GetStreamOutput()
-    {
-        return _output;
-    }
-
     public virtual void CloseBuffer()
     {
         _buffer.Close();
@@ -90,6 +74,6 @@ public class AudioStreamBuffer : DisposableBuffer, IAudioBuffer
 
     public void ClearBuffer()
     {
-        _buffer.Reset();
+        _buffer.ClearBuffer();
     }
 }

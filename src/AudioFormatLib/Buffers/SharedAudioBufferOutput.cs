@@ -5,11 +5,20 @@ namespace AudioFormatLib.Buffers;
 
 internal class SharedAudioBufferOutput : IAudioStreamOutput, IAudioBufferOutput
 {
+    public override AFrameFormat Format { get { return _format; } }
+
+    public int StoredByteCount { get { return _buffer.Count; } }
+
+
+
+    private readonly AFrameFormat _format;
+
     /// <summary> Externally managed buffer. </summary>
     private readonly IUnsafeBuffer _buffer;
 
-    public SharedAudioBufferOutput(IUnsafeBuffer sharedBuffer)
+    public SharedAudioBufferOutput(AFrameFormat format, IUnsafeBuffer sharedBuffer)
     {
+        _format = format;
         _buffer = sharedBuffer;
     }
 

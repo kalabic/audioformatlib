@@ -50,7 +50,8 @@
  *
  *****************************************************************************/
 
-using AudioFormatLib.Utils;
+using AudioFormatLib.IO;
+
 
 namespace AudioFormatLib.Resampler
 {
@@ -63,31 +64,17 @@ namespace AudioFormatLib.Resampler
     /// 
     /// </summary>
     public unsafe class ChannelResampler
-        : ReSampler.IInputProducer
-        , ReSampler.IOutputConsumer
-        , IDisposable
     {
+        public long SamplesRead { get { return _samplesRead; } }
+
+        public long SamplesWritten { get { return _samplesWritten; } }
+
+
         private ReSampler _resampler;
 
-        private ConverterParams _inputParams;
+        private long _samplesRead = 0;
 
-        private ConverterParams _outputParams;
-
-        private AConversion_ShortPtr_To_Float _inputFunction;
-
-        private AConversion_Float_To_ShortPtr _outputFunction;
-
-        private short* _input = null;
-
-        private short* _output = null;
-
-        private long _inputSampleCount = 0;
-
-        private long _inputSamplesUsed = 0;
-
-        private long _outputSampleMaxCount = 0;
-
-        private long _outputSampleCount = 0;
+        private long _samplesWritten = 0;
 
 
         /// <summary>
@@ -98,87 +85,18 @@ namespace AudioFormatLib.Resampler
         /// </summary>
         /// <param name="highQuality"></param>
         /// <param name="factor"></param>
-        /// <param name="channel"> The same channel will be read from at input and written to at output. </param>
-        /// <exception cref="NotImplementedException"></exception>
-        internal ChannelResampler(bool highQuality, float factor, AChannelId channel)
+        internal ChannelResampler(bool highQuality, float factor)
         {
             _resampler = new(highQuality, factor, factor);
-
-            var convertIn = ChannelConverter.Get_ShortPtr_To_Float_Func(channel, AChannelId.MonoTrack);
-            var convertOut = ChannelConverter.Get_Float_To_ShortPtr_Func(AChannelId.MonoTrack, channel);
-            if (convertIn is null || convertOut is null)
-            {
-                throw new NotImplementedException("Sample conversion function not found.");
-            }
-
-            _inputFunction = convertIn.Value.Func;
-            _inputParams = convertIn.Value.Params;
-            _outputFunction = convertOut.Value.Func;
-            _outputParams = convertOut.Value.Params;
         }
 
 
-        /// <summary>
-        /// 
-        /// Both <paramref name="input"/> and <paramref name="output"/> can be a multi-channel audio frame or
-        /// a simple mono audio type. This function will access only the channel specified in constructor using
-        /// provided channel id.
-        /// 
-        /// </summary>
-        /// <param name="factor"></param>
-        /// <param name="lastPacket"></param>
-        /// <param name="input"></param>
-        /// <param name="inputSize"></param>
-        /// <param name="output"></param>
-        /// <param name="outputSize"></param>
-        /// <returns></returns>
-        /// <exception cref="InvalidOperationException"></exception>
-        internal unsafe long ProcessInput(float factor, bool lastPacket, byte* input, long inputSize, byte* output, long outputSize)
+        internal unsafe bool ProcessInput(float factor, bool lastPacket, IInputProducer<float> producer, IOutputConsumer<float> consumer)
         {
-            _input = (short *)input;
-            _output = (short *)output;
-            _inputSamplesUsed = 0;
-            _inputSampleCount = inputSize / sizeof(short);
-            _outputSampleCount = 0;
-            _outputSampleMaxCount = outputSize / sizeof(short);
-
-            _resampler.Process(factor, this, this, lastPacket);
-            if (_inputSamplesUsed < _inputSampleCount)
-            {
-                throw new InvalidOperationException("Previous operation did not process all of input.");
-            }
-
-            return _outputSampleCount * sizeof(short);
-        }
-
-        /// <summary> See summary for <see cref="ReSampler.IInputProducer.GetInputBufferLength"/> </summary>
-        public int GetInputBufferLength()
-        {
-            return (int)(_inputSampleCount - _inputSamplesUsed);
-        }
-
-        /// <summary> See summary for <see cref="ReSampler.IOutputConsumer.GetOutputBufferLength"/> </summary>
-        public int GetOutputBufferLength()
-        {
-            return (int)(_outputSampleMaxCount - _outputSampleCount);
-        }
-
-        /// <summary> See summary for <see cref="ReSampler.IInputProducer.ProduceInput"/> </summary>
-        public void ProduceInput(float[] array, int offset, int length)
-        {
-            _inputFunction(_inputParams, _input, _inputSamplesUsed, length, array, offset);
-            _inputSamplesUsed += length;
-        }
-
-        /// <summary> See summary for <see cref="ReSampler.IOutputConsumer.ConsumeOutput"/> </summary>
-        public void ConsumeOutput(float[] array, int offset, int length)
-        {
-            _outputFunction(_outputParams, array, offset, length, _output, _outputSampleCount);
-            _outputSampleCount += length;
-        }
-
-        public void Dispose()
-        {
+            bool result = _resampler.Process(factor, producer, consumer, lastPacket);
+            _samplesRead += producer.SamplesRead;
+            _samplesWritten += consumer.SamplesWritten;
+            return result;
         }
     }
 }
