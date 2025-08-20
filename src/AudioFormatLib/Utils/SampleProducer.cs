@@ -11,38 +11,29 @@ internal unsafe class SampleProducer : IInputProducer<float>
 
     private readonly ConverterParams _params;
 
-    private readonly AConversion_ShortPtr_To_Float _function;
-
-    private byte* _input = null;
+    private AudioSpan _producer = AudioSpan.Empty;
 
     private long _sampleCount = 0;
 
     private long _samplesUsed = 0;
 
 
-    public SampleProducer(ConverterParams parameters, AConversion_ShortPtr_To_Float function)
+    public SampleProducer(ConverterParams parameters)
     {
         _params = parameters;
-        _function = function;
     }
 
-    public void SetInput<T>(T* ptr, long count) where T : unmanaged
+    public void SetInput(in AudioSpan input)
     {
-        SetInputBytes((byte*)ptr, count);
-    }
-
-    private void SetInputBytes(byte* ptr, long count)
-    {
-        Debug.Assert(ptr != null && count > 0, "Null or no input provided.");
-        Debug.Assert(_samplesUsed == _sampleCount, "Previous operation did not use all of input.");
-        _input = (byte*)ptr;
-        _sampleCount = count;
+        Debug.Assert(_samplesUsed == _sampleCount, "Previous operation did not use all of stored samples.");
+        _producer = input;
+        _sampleCount = input.CountOf.Frames; // FRAME COUNT is always equivalent to count of samples inside ONE of channels.
         _samplesUsed = 0;
     }
 
     public void ReleaseInput()
     {
-        _input = null;
+        _producer = AudioSpan.Empty;
         _sampleCount = 0;
         _samplesUsed = 0;
     }
@@ -55,9 +46,19 @@ internal unsafe class SampleProducer : IInputProducer<float>
     public void ProduceInput(float[] array, int offset, int length)
     {
         long samplesAvailable = _sampleCount - _samplesUsed;
-        Debug.Assert(length <= samplesAvailable, "Cannot produce more samples than stored.");
-        int minLength = (int)Math.Min((long)length, samplesAvailable);
-        _function(_params, _input, _samplesUsed, minLength, array, offset);
-        _samplesUsed += minLength;
+        Debug.Assert(length <= samplesAvailable, "Cannot produce more samples than there are samples stored.");
+
+        int minLength = (int)Math.Min(length, samplesAvailable);
+        if (minLength > 0)
+        {
+            var producerSubSpan = _producer.GetFrameSpan(_samplesUsed, minLength);
+
+            fixed (float* outputPtr = array)
+            {
+                var outputSpan = new ASampleSpan<float>(outputPtr, offset, length).ByteSpan;
+                _params.Func(_params, producerSubSpan, outputSpan);
+                _samplesUsed += minLength;
+            }
+        }
     }
 }

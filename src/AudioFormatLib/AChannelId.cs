@@ -23,6 +23,9 @@ namespace AudioFormatLib;
 /// </summary>
 public struct AChannelId
 {
+    /// <summary> A channel Id that represents all tracks. </summary>
+    public static readonly AChannelId EveryChannel = new AChannelId();
+
     /// <summary> For convenience when dealing with a mono audio frame. </summary>
     public static readonly AChannelId MonoTrack = new AChannelId(0);
 
@@ -39,16 +42,20 @@ public struct AChannelId
     /// <summary> Index of a channel this instance identifies. </summary>
     public int Index { get { return _index; } }
 
+    public bool AllChannels { get { return _channelCount == 0 && _index == 0; } }
+
 
 
     private int _channelCount;
 
     private int _index;
 
+
+    /// <summary> Creates channel Id to be used when function needs to operate on each and every channel. </summary>
     public AChannelId()
     {
-        _channelCount = -1;
-        _index = -1;
+        _channelCount = 0;
+        _index = 0;
     }
 
     /// <summary>

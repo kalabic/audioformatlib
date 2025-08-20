@@ -23,13 +23,15 @@ namespace AudioFormatLib;
 /// </summary>
 public struct AFrameFormat
 {
-    /// <summary> 
-    ///
-    /// Notice that "frame sample" represents samples across all channels for a single timestamp.
-    /// Just to be clear here, because the term "sample" is overloaded in audio terminology.
-    ///
-    /// </summary>
-    public int FrameSampleSize { get { return SampleFormat.Size() * ChannelLayout.Count; } }
+    public static readonly AFrameFormat NONE = new AFrameFormat(ASampleFormat.NONE, 0, 0);
+
+    /// <summary> FRAME represents samples across all channels for a single timestamp. </summary>
+    public int FrameSize { get { return SampleFormat.Size() * ChannelLayout.Count; } }
+
+    public int NumChannels { get { return ChannelLayout.Count; } }
+
+    public bool IsPlanar {  get { return ChannelLayout.IsPlanar; } }
+
 
     public ASampleFormat SampleFormat;
 
@@ -38,22 +40,51 @@ public struct AFrameFormat
     public int SampleRate;
 
 
-    public AFrameFormat(ASampleFormat format, int sampleRate, int numChannels)
+    /// <summary>
+    /// 
+    /// Note that if <paramref name="numChannels"/> is 1, it overrides value of <paramref name="planar"/> and
+    /// always sets it to <c>true</c>.
+    /// 
+    /// </summary>
+    /// <param name="format"></param>
+    /// <param name="sampleRate"></param>
+    /// <param name="numChannels"></param>
+    /// <param name="planar"></param>
+    public AFrameFormat(ASampleFormat format, int sampleRate, int numChannels, bool planar = false)
     {
         SampleFormat = format;
         SampleRate = sampleRate;
-        ChannelLayout = new AChannelLayout(numChannels);
+        ChannelLayout = new AChannelLayout(numChannels, planar);
+    }
+
+    /// <summary> Convert samples to bytes. </summary>
+    public long AsByteCount(long sampleCount)
+    {
+        return sampleCount * SampleFormat.Size();
+    }
+
+    /// <summary> Convert bytes to samples. </summary>
+    public long AsSampleCount(long byteCount)
+    {
+        Debug.Assert(byteCount % SampleFormat.Size() == 0);
+        return byteCount / SampleFormat.Size();
+    }
+
+    public long AsFrameCount(long sampleCount)
+    {
+        Debug.Assert(sampleCount % ChannelLayout.Count == 0);
+        return sampleCount / ChannelLayout.Count;
     }
 
     public long SampleCountFromBufferSize(long size)
     {
-        Debug.Assert(size % FrameSampleSize == 0);
-        return size / FrameSampleSize;
+        Debug.Assert(size % FrameSize == 0);
+        return size / FrameSize;
     }
 
     public long BufferSizeFromSeconds(long seconds)
     {
-        return FrameSampleSize * SampleRate * seconds;
+        return FrameSize * SampleRate * seconds;
     }
 
     /// <summary>
@@ -66,7 +97,6 @@ public struct AFrameFormat
     /// <returns></returns>
     public long BufferSizeFromMiliseconds(long miliseconds)
     {
-        long buf1000 = BufferSizeFromSeconds(miliseconds);
-        return buf1000 / 1000;
+        return (FrameSize * SampleRate * miliseconds) / 1000;
     }
 }

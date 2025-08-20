@@ -1,6 +1,5 @@
 ﻿using AudioFormatLib.IO;
 using AudioFormatLib.System;
-using AudioFormatLib.Utils;
 using System.Diagnostics;
 
 namespace AudioFormatLib.Buffers;
@@ -46,9 +45,9 @@ public class AudioStreamBuffer : DisposableBuffer, IAudioBuffer
         _bparams = bparams;
         _format = bparams.Format;
         _streamEvent = new CancellableEventSlim(cancellation);
-        _buffer = AudioFrameTools.CreateUnsafeBuffer(bparams);
-        _inputs = AudioFrameTools.CreateInputsWithBuffer(bparams, _buffer);
-        _outputs = AudioFrameTools.CreateOutputsWithBuffer(bparams, _buffer);
+        _buffer = ATools.CreateUnsafeBuffer(bparams);
+        _inputs = ATools.CreateInputsWithBuffer(bparams, _buffer);
+        _outputs = ATools.CreateOutputsWithBuffer(bparams, _buffer);
     }
 
     public AudioStreamBuffer(ABufferParams bufferParams)

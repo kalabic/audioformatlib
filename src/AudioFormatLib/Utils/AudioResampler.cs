@@ -1,37 +1,40 @@
+using AudioFormatLib.Buffers;
 using AudioFormatLib.Extensions;
 using AudioFormatLib.Resampler;
 
 namespace AudioFormatLib.Utils;
 
 
-public unsafe class AudioResampler 
+public class AudioResampler 
     : AudioFunction<bool, long>
 {
     public static AudioResampler Create(AResamplerParams RP)
     {
-        if (RP.NumChannels < 1 || RP.NumChannels > 2 || RP.OutChannels < 0 || RP.OutChannels > 2)
+        if (RP.Input.NumChannels < 1 || RP.Input.NumChannels > 2 || RP.Output.NumChannels < 0 || RP.Output.NumChannels > 2)
         {
             throw new ArgumentException("Unsupported number of channels.");
         }
-        if (RP.SampleFormat != ASampleFormat.S16)
+        if (RP.Input.SampleFormat != ASampleFormat.S16)
         {
             throw new ArgumentException("Unsupported sample format.");
         }
         if (RP.Factor == 0.0f)
         {
-            RP.Factor = AudioFrameTools.CalcFactor(RP.Factor, RP.InputSampleRate, RP.OutputSampleRate);
+            RP.Factor = ATools.CalcFactor(RP.Factor, RP.Input.SampleRate, RP.Output.SampleRate);
         }
-        if (RP.InputSampleRate == 0)
+        if (RP.Input.SampleRate == 0)
         {
-            RP.InputSampleRate = AudioFrameTools.CalcInputSampleRate(RP.Factor, RP.InputSampleRate, RP.OutputSampleRate);
+            RP.Input.SampleRate = ATools.CalcInputSampleRate(RP.Factor, RP.Input.SampleRate, RP.Output.SampleRate);
         }
-        if (RP.OutputSampleRate == 0)
+        if (RP.Output.SampleRate == 0)
         {
-            RP.OutputSampleRate = AudioFrameTools.CalcOutputSampleRate(RP.Factor, RP.InputSampleRate, RP.OutputSampleRate);
+            RP.Output.SampleRate = ATools.CalcOutputSampleRate(RP.Factor, RP.Input.SampleRate, RP.Output.SampleRate);
         }
-        RP.OutSampleFormat = (RP.OutSampleFormat == ASampleFormat.NONE) ? RP.SampleFormat : RP.OutSampleFormat;
+        RP.Output = (RP.Output.SampleFormat == ASampleFormat.NONE) ? RP.Input : RP.Output;
         return new AudioResampler(RP);
     }
+
+
 
     public AResamplerParams Params { get { return _RP; } }
 
@@ -42,9 +45,12 @@ public unsafe class AudioResampler
     public long OutBytesGenerated { get { return _outBytesGenerated; } }
 
 
+
     private readonly AResamplerParams _RP;
 
     private ChannelResampler[] _resamplers;
+
+    private readonly BufferCoupler _coupler;
 
     private long _inPacketCount = 0;
 
@@ -52,8 +58,10 @@ public unsafe class AudioResampler
 
     private long _outBytesGenerated = 0;
 
-    protected AudioResampler(AResamplerParams RP)
-        : base(RP.NumChannels, RP.SampleFormat.Size(), RP.OutSampleFormat.Size())
+
+
+    protected AudioResampler(in AResamplerParams RP)
+        : base(RP.Input, RP.Output)
     {
         _RP = RP;
         _resamplers = new ChannelResampler[RP.NumChannels];
@@ -61,6 +69,7 @@ public unsafe class AudioResampler
         {
             _resamplers[i] = new ChannelResampler(RP.HighQuality, RP.Factor);
         }
+        _coupler = new BufferCoupler(RP.Input, RP.Output);
     }
 
     protected override void Dispose(bool disposing)
@@ -68,36 +77,74 @@ public unsafe class AudioResampler
         if (disposing)
         {
             _resamplers = Array.Empty<ChannelResampler>();
+            _coupler.Dispose();
         }
         base.Dispose(disposing);
     }
 
-    protected unsafe override long Process(bool lastFrame)
+    protected long Process(bool lastFrame)
     {
         long samplesWritten = 0;
         long samplesRead = 0;
         for (int i=0; i < _RP.NumChannels; i++)
         {
-            var producer = GetProducer(i);
-            var consumer = GetConsumer(i);
+            var producer = _coupler.GetProducer(i);
+            var consumer = _coupler.GetConsumer(i);
             _resamplers[i].ProcessInput(_RP.Factor, lastFrame, producer, consumer);
             samplesRead += producer.SamplesRead;
             samplesWritten += consumer.SamplesWritten;
         }
 
         _inPacketCount++;
-        _inBytesProcessed += samplesRead * _RP.SampleFormat.Size();
-        _outBytesGenerated += samplesWritten * _RP.OutSampleFormat.Size();
+        _inBytesProcessed += samplesRead * _RP.Input.SampleFormat.Size();
+        _outBytesGenerated += samplesWritten * _RP.Output.SampleFormat.Size();
         return samplesWritten;
     }
 
-    protected override long IOErrorOccurred()
+    /// <summary>
+    /// 
+    /// Process input/output provided as AudioSpan types. All other pointer and Array combinations of 
+    /// input and output types also invoke this method.
+    /// 
+    /// </summary>
+    public override long Process(in AudioSpan input, in AudioSpan output, bool Params)
     {
-        return 0;
+        if (_coupler.AttachBuffers(input, output))
+        {
+            try
+            {
+                return Process(Params);
+            }
+#pragma warning disable CS0168 // Variable is declared but never used
+            catch (Exception ex)
+#pragma warning restore CS0168 // Variable is declared but never used
+            {
+                return 0;
+            }
+            finally
+            {
+                _coupler.ReleaseBuffers();
+            }
+        }
+        else
+        {
+            return 0;
+        }
     }
 
-    protected override long ExceptionOccurred(Exception ex)
+    public T[] Process<T>(T[] input)
+        where T : unmanaged
     {
-        return 0;
+        return Process(input, 0, input.LongLength);
+    }
+
+    public T[] Process<T>(T[] input, long offset, long length)
+        where T : unmanaged
+    {
+        long expectedSize = (int)Params.GetExpectedOutputSize(length);
+        T[] output = new T[expectedSize];
+        long outputSize = Process<T, T>(input, offset, length, output, 0, expectedSize, false);
+        Array.Resize(ref output, (int)outputSize);
+        return output;
     }
 }

@@ -11,6 +11,8 @@
  *
  *****************************************************************************/
 
+using AudioFormatLib.Extensions;
+
 namespace AudioFormatLib;
 
 
@@ -61,9 +63,73 @@ public enum ASampleFormat : int
 
 public static class ASampleFormatMethods
 {
+    public static ASampleFormat DefaultForType<T>(this ASampleFormat id)
+        where T : unmanaged
+    {
+        if (GenericType<T>.IsByte)
+        {
+            return ASampleFormat.U8;
+        }
+        if (GenericType<T>.IsDouble)
+        {
+            return ASampleFormat.DOUBLE;
+        }
+        if (GenericType<T>.IsFloat)
+        {
+            return ASampleFormat.FLOAT;
+        }
+        if (GenericType<T>.IsInt)
+        {
+            return ASampleFormat.S32;
+        }
+        if (GenericType<T>.IsShort)
+        {
+            return ASampleFormat.S16;
+        }
+
+        return ASampleFormat.NONE;
+    }
+
+    public static bool IsCompatible<T>(this ASampleFormat id)
+        where T : unmanaged
+    {
+        switch (id)
+        {
+            case ASampleFormat.NONE:
+                return false;
+
+            case ASampleFormat.U8:
+            case ASampleFormat.P_U8:
+                return GenericType<T>.IsUInt8;
+
+            case ASampleFormat.S16:
+            case ASampleFormat.P_S16:
+                return GenericType<T>.IsShort;
+
+            case ASampleFormat.FLOAT:
+            case ASampleFormat.P_FLOAT:
+                return GenericType<T>.IsFloat;
+
+            case ASampleFormat.S32:
+            case ASampleFormat.P_S32:
+                return GenericType<T>.IsInt;
+
+            case ASampleFormat.DOUBLE:
+            case ASampleFormat.P_DOUBLE:
+                return GenericType<T>.IsDouble;
+
+            case ASampleFormat.S64:
+            case ASampleFormat.P_S64:
+                return GenericType<T>.IsLong;
+
+            default:
+                throw new ArgumentException($"Invalid format identifier: {id}");
+        }
+    }
+
     public static int Bits(this ASampleFormat id)
     {
-        switch(id)
+        switch (id)
         {
             case ASampleFormat.NONE:
                 return 0;
@@ -96,5 +162,38 @@ public static class ASampleFormatMethods
     public static int Size(this ASampleFormat id)
     {
         return id.Bits() / 8;
+    }
+
+    public static long ToByteCount(this ASampleFormat id, long sampleCount)
+    {
+        return id.Bits() * sampleCount / 8;
+    }
+
+    public static int ConverterIndex(this ASampleFormat id)
+    {
+        switch (id)
+        {
+            case ASampleFormat.FLOAT:
+            case ASampleFormat.P_FLOAT:
+                return 0;
+
+            case ASampleFormat.S16:
+            case ASampleFormat.P_S16:
+                return 1;
+
+            case ASampleFormat.NONE:
+            case ASampleFormat.U8:
+            case ASampleFormat.P_U8:
+            case ASampleFormat.S32:
+            case ASampleFormat.P_S32:
+            case ASampleFormat.DOUBLE:
+            case ASampleFormat.P_DOUBLE:
+            case ASampleFormat.S64:
+            case ASampleFormat.P_S64:
+                return -1; // WIP
+
+            default:
+                throw new ArgumentException($"Invalid format identifier: {id}");
+        }
     }
 }

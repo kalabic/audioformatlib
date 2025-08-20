@@ -1,6 +1,5 @@
 using AudioFormatLib.Buffers;
-using AudioFormatLib.IO;
-using System.Runtime.CompilerServices;
+using System.Diagnostics;
 
 namespace AudioFormatLib.Extensions;
 
@@ -10,231 +9,74 @@ namespace AudioFormatLib.Extensions;
 /// Extensions here allow for mixing different input and output types, Arrays and unsafe memory pointers.
 /// 
 /// </summary>
-public unsafe abstract class AudioFunction<ParamsT, ResultT>
+public abstract class AudioFunction<ParamsT, ResultT>
     : DisposableBuffer
 {
-    private readonly BufferCoupler _coupler;
+    public AFrameFormat InputFormat { get { return _inputFormat; } }
 
-    protected AudioFunction(int numChannels, int inSampleSize, int outSampleSize)
+    public AFrameFormat OutputFormat { get { return _outputFormat; } }
+
+
+    private AFrameFormat _inputFormat;
+
+    private AFrameFormat _outputFormat;
+
+
+    protected AudioFunction(in AFrameFormat input, in AFrameFormat output)
+        : base()
     {
-        _coupler = new BufferCoupler(numChannels, inSampleSize, outSampleSize);
+        Debug.Assert(input.NumChannels == output.NumChannels); // WIP
+        _inputFormat = input;
+        _outputFormat = output;
     }
 
-    protected override void Dispose(bool disposing)
+
+    public abstract ResultT Process(in AudioSpan input, in AudioSpan output, ParamsT Params);
+
+
+    public ResultT Process(in AudioPtr input, long offset, long length,
+                           in AudioPtr output, long outOffset, long outLength,
+                           ParamsT Params)
     {
-        if (disposing)
+        var inSpan = new AudioSpan(input, offset, length);
+        var outSpan = new AudioSpan(output, outOffset, outLength);
+        return Process(inSpan, outSpan, Params);
+    }
+
+
+    public unsafe ResultT Process(byte* input, long offset, long length,
+                                  byte* output, long outOffset, long outLength,
+                                  ParamsT Params)
+    {
+        var inSpan = new AudioSpan(input, offset, length, _inputFormat);
+        var outSpan = new AudioSpan(output, outOffset, outLength, _outputFormat);
+        return Process(inSpan, outSpan, Params);
+    }
+
+
+    /// <summary>
+    /// 
+    /// Because of implicit conversion operator in <see cref="AudioPtr.Any{T}"/> parameters
+    /// <paramref name="input"/> and <paramref name="output"/> can serve as catch-all basket
+    /// for different types of <see cref="Array"/> and unsafe memory pointer arguments.
+    /// 
+    /// </summary>
+    public ResultT Process<IN, OUT>(in AudioPtr.Any<IN> input, long offset, long length,
+                                    in AudioPtr.Any<OUT> output, long outOffset, long outLength,
+                                    ParamsT Params)
+         where IN : unmanaged
+         where OUT : unmanaged
+    {
+        Debug.Assert(_inputFormat.SampleFormat == input.Format);
+        Debug.Assert(_outputFormat.SampleFormat == output.Format);
+
+        using var fixedInput = input.MakeFixed();
+        using var fixedOutput = output.MakeFixed();
+        unsafe
         {
-            _coupler.Dispose();
+            var inputSpan = new AudioSpan((byte*)fixedInput, offset * sizeof(IN), length * sizeof(IN), _inputFormat);
+            var outputSpan = new AudioSpan((byte*)fixedOutput, outOffset * sizeof(OUT), outLength * sizeof(OUT), _outputFormat);
+            return Process(inputSpan, outputSpan, Params);
         }
-        base.Dispose(disposing);
-    }
-
-    protected IInputProducer<float> GetProducer(int index)
-    {
-        return _coupler.GetProducer(index);
-    }
-
-    protected IOutputConsumer<float> GetConsumer(int index)
-    {
-        return _coupler.GetConsumer(index);
-    }
-
-    protected abstract ResultT Process(ParamsT Param);
-
-    protected abstract ResultT IOErrorOccurred();
-
-    protected abstract ResultT ExceptionOccurred(Exception ex);
-
-
-
-    //
-    // Process IPtr input/output. All other Ptr_t, Array, APtr & AObjPtr combinations finally invoke this method.
-    //
-
-    public unsafe ResultT Process<IN, OUT>(in IPtr<IN> input, in IPtr<OUT> output, ParamsT Params)
-         where IN : unmanaged
-         where OUT : unmanaged
-    {
-        if (_coupler.AttachBuffers(input.OffsetPtr, input.Length, output.OffsetPtr, output.Length))
-        {
-            try
-            {
-                return Process(Params);
-            }
-            catch (Exception ex)
-            {
-                return ExceptionOccurred(ex);
-            }
-            finally
-            {
-                _coupler.ReleaseBuffers();
-            }
-        }
-        else
-        {
-            return IOErrorOccurred();
-        }
-    }
-
-
-
-    //
-    // Process Ptr_t & Array combinations of inputs and outputs.
-    //
-
-    /// <summary>
-    /// 
-    /// <para>Input: raw pointer.</para>
-    /// <para>Output: raw pointer.</para>
-    /// 
-    /// </summary>
-    /// <typeparam name="IN"></typeparam>
-    /// <typeparam name="OUT"></typeparam>
-    /// <param name="input"></param>
-    /// <param name="offset"></param>
-    /// <param name="length"></param>
-    /// <param name="output"></param>
-    /// <param name="outOffset"></param>
-    /// <param name="outLength"></param>
-    /// <param name="Params"></param>
-    /// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe ResultT Process<IN, OUT>(Ptr_t<IN> input, long offset, long length,
-                                           Ptr_t<OUT> output, long outOffset, long outLength,
-                                           ParamsT Params)
-         where IN : unmanaged
-         where OUT : unmanaged
-    {
-        return Process<IN, OUT>((input, offset, length), (output, outOffset, outLength), Params);
-    }
-
-    /// <summary>
-    /// 
-    /// <para>Input: array.</para>
-    /// <para>Output: array.</para>
-    /// 
-    /// </summary>
-    /// <typeparam name="IN"></typeparam>
-    /// <typeparam name="OUT"></typeparam>
-    /// <param name="input"></param>
-    /// <param name="offset"></param>
-    /// <param name="length"></param>
-    /// <param name="output"></param>
-    /// <param name="outOffset"></param>
-    /// <param name="outLength"></param>
-    /// <param name="Params"></param>
-    /// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe ResultT Process<IN, OUT>(IN[] input, long offset, long length,
-                                           OUT[] output, long outOffset, long outLength,
-                                           ParamsT Params)
-         where IN : unmanaged
-         where OUT : unmanaged
-    {
-        var pinIn = (AObjPtr<IN>)(input, offset, length);
-        var pinOut = (AObjPtr<OUT>)(output, outOffset, outLength);
-        var result =  Process(ref pinIn, ref pinOut, Params);
-        pinIn.Unpin();
-        pinOut.Unpin();
-        return result;
-    }
-
-    /// <summary>
-    /// 
-    /// <para>Input: raw pointer.</para>
-    /// <para>Output: array.</para>
-    /// 
-    /// </summary>
-    /// <typeparam name="IN"></typeparam>
-    /// <typeparam name="OUT"></typeparam>
-    /// <param name="input"></param>
-    /// <param name="offset"></param>
-    /// <param name="length"></param>
-    /// <param name="output"></param>
-    /// <param name="outOffset"></param>
-    /// <param name="outLength"></param>
-    /// <param name="Params"></param>
-    /// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe ResultT Process<IN, OUT>(Ptr_t<IN> input, long offset, long length,
-                                           OUT[] output, long outOffset, long outLength,
-                                           ParamsT Params)
-         where IN : unmanaged
-         where OUT : unmanaged
-    {
-        var pinOut = (AObjPtr<OUT>)(output, outOffset, outLength);
-        var result = Process<IN, OUT>((input, offset, length), ref pinOut, Params);
-        pinOut.Unpin();
-        return result;
-    }
-
-    /// <summary>
-    /// 
-    /// <para>Input: array.</para>
-    /// <para>Output: raw pointer.</para>
-    /// 
-    /// </summary>
-    /// <typeparam name="IN"></typeparam>
-    /// <typeparam name="OUT"></typeparam>
-    /// <param name="input"></param>
-    /// <param name="offset"></param>
-    /// <param name="length"></param>
-    /// <param name="output"></param>
-    /// <param name="outOffset"></param>
-    /// <param name="outLength"></param>
-    /// <param name="Params"></param>
-    /// <returns></returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe ResultT Process<IN, OUT>(IN[] input, long offset, long length,
-                                           Ptr_t<OUT> output, long outOffset, long outLength,
-                                           ParamsT Params)
-         where IN : unmanaged
-         where OUT : unmanaged
-    {
-        var pinIn = (AObjPtr<IN>)(input, offset, length);
-        var result = Process<IN, OUT>(ref pinIn, (output, outOffset, outLength), Params);
-        pinIn.Unpin();
-        return result;
-    }
-
-
-
-    //
-    // Process APtr & AObjPtr combinations of inputs and outputs.
-    //
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe ResultT Process<IN, OUT>(in APtr<IN> input, in APtr<OUT> output, ParamsT Params)
-         where IN : unmanaged
-         where OUT : unmanaged
-    {
-        return Process((IPtr<IN>)input, (IPtr<OUT>)output, Params);
-    }
-
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe ResultT Process<IN, OUT>(ref AObjPtr<IN> input, ref AObjPtr<OUT> output, ParamsT Params)
-         where IN : unmanaged
-         where OUT : unmanaged
-    {
-        return Process((IPtr<IN>)input, (IPtr<OUT>)output, Params);
-    }
-
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe ResultT Process<IN, OUT>(in APtr<IN> input, ref AObjPtr<OUT> output, ParamsT Params)
-         where IN : unmanaged
-         where OUT : unmanaged
-    {
-        return Process((IPtr<IN>)input, (IPtr<OUT>)output, Params);
-    }
-
-
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public unsafe ResultT Process<IN, OUT>(ref AObjPtr<IN> input, in APtr<OUT> output, ParamsT Params)
-         where IN : unmanaged
-         where OUT : unmanaged
-    {
-        return Process((IPtr<IN>)input, (IPtr<OUT>)output, Params);
     }
 }

@@ -1,79 +1,94 @@
 ﻿using AudioFormatLib.Converters;
+using AudioFormatLib.Extensions;
 
 namespace AudioFormatLib.Utils;
 
 
-public static class ChannelConverter
+public static unsafe class ChannelConverter
 {
-    public enum Mapping : int
-    {
-        UNSUPPORTED = 0,
-        PLANAR = 1,
-        INTERLEAVED_TO_PLANAR = 2,
-        PLANAR_TO_INTERLEAVED = 3,
-        INTERLEAVED = 4,
-    }
+    private static readonly DelegateMap[][] _mappingArray = 
+    [
+        [PlanarConverter.Mapping, PlanarToInterleaved.Mapping],
+        [InterleavedToPlanar.Mapping, InterleavedConverter.Mapping]
+    ];
 
-    /// <summary>
-    /// 
-    /// Return appropriate function for sample conversion from source into destination,
-    /// converting a single channel from audio frame, all while taking into consideration
-    /// source and destination channel layouts.
-    /// 
-    /// </summary>
-    /// <param name="source"></param>
-    /// <param name="destination"></param>
-    /// <returns></returns>
-    public static unsafe (AConversion_Float_To_ShortPtr Func, ConverterParams Params)? Get_Float_To_ShortPtr_Func(AChannelId source, AChannelId destination)
+    private static DelegateMap GetDelegateMap(AChannelId source, AChannelId destination)
     {
-        var parameters = new ConverterParams(source, destination);
-        switch (parameters.MappingType)
+        var mapping = ATools.ValidateChannelMapping(source, destination);
+        if (mapping == ChannelMapping.UNSUPPORTED)
         {
-            case Mapping.PLANAR:
-                return (PlanarConverter.Float_To_ShortPtr, parameters);
-
-            case Mapping.PLANAR_TO_INTERLEAVED:
-                return (PlanarToInterleaved.Float_To_ShortPtr, parameters);
-
-            case Mapping.INTERLEAVED_TO_PLANAR:
-                return (InterleavedToPlanar.Float_To_ShortPtr, parameters);
-
-            case Mapping.INTERLEAVED:
-                return (InterleavedConverter.Float_To_ShortPtr, parameters);
+            return DelegateMap.NONE;
         }
 
-        return null;
-    }
-
-
-    /// <summary>
-    /// 
-    /// Return appropriate function for sample conversion from source into destination,
-    /// converting a single channel from audio frame, all while taking into consideration
-    /// source and destination channel layouts.
-    /// 
-    /// </summary>
-    /// <param name="source"></param>
-    /// <param name="destination"></param>
-    /// <returns></returns>
-    public static unsafe (AConversion_ShortPtr_To_Float Func, ConverterParams Params)? Get_ShortPtr_To_Float_Func(AChannelId source, AChannelId destination)
-    {
-        var parameters = new ConverterParams(source, destination);
-        switch (parameters.MappingType)
+        var SMI = mapping.SourceLayout();
+        var DMI = mapping.DestinationLayout();
+        if (!SMI.IsValid() || !DMI.IsValid())
         {
-            case Mapping.PLANAR:
-                return (PlanarConverter.ShortPtr_To_Float, parameters);
-
-            case Mapping.PLANAR_TO_INTERLEAVED:
-                return (PlanarToInterleaved.ShortPtr_To_Float, parameters);
-
-            case Mapping.INTERLEAVED_TO_PLANAR:
-                return (InterleavedToPlanar.ShortPtr_To_Float, parameters);
-
-            case Mapping.INTERLEAVED:
-                return (InterleavedConverter.ShortPtr_To_Float, parameters);
+            return DelegateMap.NONE;
         }
 
-        return null;
+        return _mappingArray[(int)SMI][(int)DMI];
+    }
+
+    public static unsafe ConverterParams Get_Func<IN, OUT>(in AChannelId destination)
+        where IN : unmanaged
+        where OUT : unmanaged
+    {
+        var DMAP = GetDelegateMap(AChannelId.MonoTrack, destination);
+        var FUNC = DMAP.GetDelegate<IN, OUT>();
+        var CP = new ConverterParams(AChannelId.MonoTrack, destination)
+        {
+            Func = FUNC
+        };
+        return CP;
+    }
+
+    public static unsafe ConverterParams Get_Func<IN, OUT>(in AChannelId source, in AChannelId destination)
+        where IN : unmanaged
+        where OUT : unmanaged
+    {
+        var DMAP = GetDelegateMap(source, destination);
+        var FUNC = DMAP.GetDelegate<IN, OUT>();
+        var CP = new ConverterParams(source, destination)
+        {
+            Func = FUNC
+        };
+        return CP;
+    }
+
+    public static unsafe ConverterParams Get_Func(in AudioSpan source, in AudioSpan destination)
+    {
+        var DMAP = GetDelegateMap(AChannelId.EveryChannel, AChannelId.EveryChannel);
+        var FUNC = DMAP.GetDelegate(source.SampleFormat, destination.SampleFormat);
+        var CP = new ConverterParams(AChannelId.EveryChannel, AChannelId.EveryChannel)
+        {
+            Func = FUNC
+        };
+        return CP;
+    }
+
+    public static unsafe ConverterParams Get_Func(in AudioSpan source, 
+                                                  in AudioSpan destination,
+                                                  in AChannelId destinationChannel)
+    {
+        var DMAP = GetDelegateMap(AChannelId.MonoTrack, destinationChannel);
+        var FUNC = DMAP.GetDelegate(source.SampleFormat, destination.SampleFormat);
+        var CP = new ConverterParams(AChannelId.MonoTrack, destinationChannel)
+        {
+            Func = FUNC
+        };
+        return CP;
+    }
+
+    public static unsafe ConverterParams Get_Func(in AudioSpan source, in AudioSpan destination,
+                                                  in AChannelId sourceChannel, in AChannelId destinationChannel)
+    {
+        var DMAP = GetDelegateMap(sourceChannel, destinationChannel);
+        var FUNC = DMAP.GetDelegate(source.SampleFormat, destination.SampleFormat);
+        var CP = new ConverterParams(sourceChannel, destinationChannel)
+        {
+            Func = FUNC
+        };
+        return CP;
     }
 }

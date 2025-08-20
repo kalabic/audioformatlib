@@ -19,7 +19,7 @@ public struct ABufferParams
         set 
         { 
             Debug.Assert(value > 0);
-            Debug.Assert((value % Format.FrameSampleSize) == 0);
+            Debug.Assert((value % Format.FrameSize) == 0);
             _bufferSize = value;
         }
     }

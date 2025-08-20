@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 
 namespace AudioFormatLib;
 
@@ -12,44 +13,24 @@ namespace AudioFormatLib;
 ///     <item>InputSampleRate - Can be zero if parameter 'Factor' is non-zero value.</item>
 ///     <item>OutputSampleRate - Can be zero if parameter 'Factor' is non-zero value.</item>
 ///     <item>NumChannels - Number of audio channels in input stream. Supported values aree 1 and 2.</item>
-///     <item>SampleFormat - Input sample format. Supported value is <see cref="ASampleFormat.S16"/>, signed 16-bit integer.</item>
-///     <item>OutSampleFormat - Default is 0, the same as input sample format.</item>
+///     <item>Input - Input sample format. Supported value is <see cref="ASampleFormat.S16"/>, signed 16-bit integer.</item>
+///     <item>Output - Default is 0, the same as input sample format.</item>
 ///     <item>OutChannels - Default is 0, the same as number of channels at input.</item>
 /// </list>
 /// FYI: Some of input/output conversions are still work in progress.
 /// </summary>
 public struct AResamplerParams
 {
-    [DefaultValue(false)]
     public bool HighQuality { get; set; } = false;
 
-
-    [DefaultValue(0.0f)]
     public float Factor { get; set; } = 0.0f;
 
-
-    [DefaultValue(0)]
-    public int InputSampleRate { get; set; } = 0;
+    public int NumChannels { get { return Input.NumChannels; } }
 
 
-    [DefaultValue(0)]
-    public int OutputSampleRate { get; set; } = 0;
+    public AFrameFormat Input = AFrameFormat.NONE;
 
-
-    [DefaultValue(1)]
-    public int NumChannels { get; set; } = 1;
-
-
-    [DefaultValue(ASampleFormat.S16)]
-    public ASampleFormat SampleFormat { get; set; } = ASampleFormat.S16;
-
-
-    [DefaultValue(ASampleFormat.NONE)]
-    public ASampleFormat OutSampleFormat { get; set; } = ASampleFormat.NONE;
-
-
-    [DefaultValue(1)]
-    public int OutChannels { get; set; } = 1;
+    public AFrameFormat Output = AFrameFormat.NONE;
 
 
     public AResamplerParams() { }
@@ -66,7 +47,16 @@ public struct AResamplerParams
     {
         long size = (long)Math.Ceiling((double)inputSize * Factor);
         // Append some to output, but not too much.
-        long append = (size >= 512) ? Math.Min(128, size/32) : Math.Min(16, size / 32 + 4);
-        return size + append;
+        long append = (size >= 512) ? Math.Min(128, size / 32) : Math.Min(16, size / 32 + 4);
+        var result = size + append;
+
+        if ((result % 16) != 0)
+        {
+            result |= 0x0F;
+            result++;
+            Debug.Assert((result % 16) == 0);
+        }
+
+        return result;
     }
 }

@@ -43,12 +43,32 @@ public struct AChannelLayout
     /// <summary> Number of channels in an audio frame. </summary>
     public int Count { get { return _count; } }
 
+    /// <summary> WIP: Pretty ignorant (for now). </summary>
+    public AFrameLayout Layout { get { return _layout; } }
+
+    /// <summary> Single-channel audio frames (mono) are always considered to be 'planar'. </summary>
+    public bool IsPlanar { get { return _layout == AFrameLayout.PLANAR; } }
+
+    /// <summary> Single-channel audio frames (mono) are always considered to be 'planar'. </summary>
+    public bool IsInterleaved { get { return _layout == AFrameLayout.INTERLEAVED; } }
+
 
     private readonly int _count;
 
-    public AChannelLayout(int count)
+    private readonly AFrameLayout _layout;
+
+    /// <summary>
+    /// 
+    /// Layout will always be set to <see cref="AFrameLayout.PLANAR"/> if
+    /// <paramref name="count"/> is equal to 1.
+    /// 
+    /// </summary>
+    /// <param name="count"></param>
+    /// <param name="planar"></param>
+    public AChannelLayout(int count, bool planar = false)
     {
         _count = count;
+        _layout = (planar || (count == 1)) ? AFrameLayout.PLANAR : AFrameLayout.INTERLEAVED;
     }
 
     public AChannelId GetChannelIndex(int index)

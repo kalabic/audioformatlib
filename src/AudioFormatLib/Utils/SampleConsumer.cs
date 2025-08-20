@@ -11,32 +11,28 @@ internal unsafe class SampleConsumer : IOutputConsumer<float>
 
     private readonly ConverterParams _params;
 
-    private readonly AConversion_Float_To_ShortPtr _function;
+    private AudioSpan _consumer = AudioSpan.Empty;
 
-    private byte* _output = null;
+    private long _sampleMaxCount;
 
-    private long _sampleMaxCount = 0;
-
-    private long _sampleCount = 0;
+    private long _sampleCount;
 
 
-    public SampleConsumer(ConverterParams parameters, AConversion_Float_To_ShortPtr function)
+    public SampleConsumer(ConverterParams parameters)
     {
         _params = parameters;
-        _function = function;
     }
 
-    public void SetOutput<T>(T* ptr, long count) where T : unmanaged
+    public void SetOutput(in AudioSpan output)
     {
-        Debug.Assert(ptr != null && count > 0, "Null or no output provided.");
-        _output = (byte *)ptr;
-        _sampleMaxCount = count;
+        _consumer = output;
+        _sampleMaxCount = output.CountOf.Frames; // FRAME COUNT is always equivalent to count of samples inside ONE of channels.
         _sampleCount = 0;
     }
 
     public void ReleaseOutput()
     {
-        _output = null;
+        _consumer = AudioSpan.Empty;
         _sampleMaxCount = 0;
         _sampleCount = 0;
     }
@@ -50,8 +46,17 @@ internal unsafe class SampleConsumer : IOutputConsumer<float>
     {
         long spaceAvailable = _sampleMaxCount - _sampleCount;
         Debug.Assert(length <= spaceAvailable, "Cannot consume more samples than space available.");
-        int minLength = (int)Math.Min((long)length, spaceAvailable);
-        _function(_params, array, offset, minLength, _output, _sampleCount);
-        _sampleCount += minLength;
+        int minLength = (int)Math.Min(length, spaceAvailable);
+
+        if (minLength > 0)
+        {
+            fixed (float* inputPtr = array)
+            {
+                var input = new ASampleSpan<float>(inputPtr, offset, length).ByteSpan;
+                var availableOutput = _consumer.GetFrameSpan(_sampleCount, minLength);
+                _params.Func(_params, input, availableOutput);
+                _sampleCount += minLength;
+            }
+        }
     }
 }

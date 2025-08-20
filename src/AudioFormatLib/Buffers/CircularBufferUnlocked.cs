@@ -81,7 +81,7 @@ namespace AudioFormatLib.Buffers
         /// Write data to the buffer
         /// </summary>
         /// <param name="data">Data to write</param>
-        /// <param name="offset">Offset into data</param>
+        /// <param name="offset">SampleOffset into data</param>
         /// <param name="count">Number of bytes to write</param>
         /// <returns>number of bytes written</returns>
         public virtual unsafe int Write(byte[] data, int offset, int count)
@@ -126,7 +126,7 @@ namespace AudioFormatLib.Buffers
         /// Read from the buffer
         /// </summary>
         /// <param name="data">Buffer to read into</param>
-        /// <param name="offset">Offset into read buffer</param>
+        /// <param name="offset">SampleOffset into read buffer</param>
         /// <param name="count">Bytes to read</param>
         /// <returns>Number of bytes actually read</returns>
         public virtual unsafe int Read(byte[] data, int offset, int count)
