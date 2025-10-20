@@ -1,12 +1,13 @@
 ﻿using AudioFormatLib.IO;
 using AudioFormatLib.System;
+using DotBase.Core;
 using System.Diagnostics;
 
 namespace AudioFormatLib.Buffers;
 
 
 /// <summary> WIP </summary>
-public class AudioStreamBuffer : DisposableBuffer, IAudioBuffer
+public class AudioStreamBuffer : DisposableBase, IAudioBuffer
 {
     public int AllocatedSize { get { return _buffer.MaxLength; } }
 

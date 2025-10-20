@@ -37,6 +37,7 @@ https://github.com/naudio/NAudio/blob/master/NAudio.Core/Utils/CircularBuffer.cs
 
 
 using AudioFormatLib.IO;
+using DotBase.Core;
 using System.Diagnostics;
 
 namespace AudioFormatLib.Buffers
@@ -44,7 +45,7 @@ namespace AudioFormatLib.Buffers
     /// <summary>
     /// A very basic circular buffer implementation
     /// </summary>
-    public class CircularBufferUnlocked : DisposableBuffer, IUnsafeBuffer
+    public class CircularBufferUnlocked : DisposableBase, IUnsafeBuffer
     {
         public bool IsOpen { get { return isOpen; } }
         public long TotalRead { get { return totalRead; } }

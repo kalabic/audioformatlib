@@ -1,11 +1,12 @@
 using AudioFormatLib.IO;
 using AudioFormatLib.Utils;
+using DotBase.Core;
 using System.Diagnostics;
 
 namespace AudioFormatLib.Buffers;
 
 
-public unsafe class BufferCoupler : DisposableBuffer
+public unsafe class BufferCoupler : DisposableBase
 {
     public readonly int NumChannels;
 

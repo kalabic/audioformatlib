@@ -1,4 +1,5 @@
 using AudioFormatLib.Buffers;
+using DotBase.Core;
 using System.Diagnostics;
 
 namespace AudioFormatLib.Extensions;
@@ -10,7 +11,7 @@ namespace AudioFormatLib.Extensions;
 /// 
 /// </summary>
 public abstract class AudioFunction<ParamsT, ResultT>
-    : DisposableBuffer
+    : DisposableBase
 {
     public AFrameFormat InputFormat { get { return _inputFormat; } }
 

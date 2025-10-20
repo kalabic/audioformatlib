@@ -26,4 +26,8 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="DotBase" Version="1.0.0-beta" />
+  </ItemGroup>
+
 </Project>
