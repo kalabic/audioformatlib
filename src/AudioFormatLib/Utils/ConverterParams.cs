@@ -6,8 +6,7 @@ namespace AudioFormatLib.Utils;
 
 /// <summary>
 /// 
-/// Parameters for conversion needs to contain information about channel layouts inside
-/// source and destination frames, and identifiers of source and destination channels.
+/// Parameters describe source and destination PCM layouts and channel identifiers.
 /// 
 /// </summary>
 public unsafe struct ConverterParams

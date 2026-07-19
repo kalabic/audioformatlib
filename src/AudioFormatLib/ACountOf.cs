@@ -5,44 +5,38 @@ namespace AudioFormatLib;
 
 public readonly struct ACountOf
 {
-    /// <summary> Must be multiple of a FRAME size. </summary>
+    /// <summary> Must be a multiple of one sample frame. </summary>
     public readonly long Bytes;
 
-    /// <summary> FRAME size, <see cref="ACountOf.Bytes"/> property must be multiple of it. </summary>
-    public int BytesInFrame { get { return BytesInSample * Channels; } }
+    /// <summary> Bytes occupied by one sample across all channels. </summary>
+    public int BytesPerSampleFrame { get { return BytesPerSampleValue * ChannelCount; } }
 
-    /// <summary> SAMPLE size, <see cref="ACountOf.BytesInFrame"/> and <see cref="ACountOf.Bytes"/>  properties must be multiple of it. </summary>
-    public readonly int BytesInSample;
+    /// <summary> Bytes occupied by one scalar sample value. </summary>
+    public readonly int BytesPerSampleValue;
 
-    /// <summary>
-    /// 
-    /// Audio FRAME represents time-aligned group of SAMPLES across channels.  So in case of
-    /// multi-channel audio that makes FRAME COUNT equivalent to count of samples inside ONE
-    /// of channels.
-    /// 
-    /// </summary>
-    public readonly long Frames;
-
-    /// <summary> Count of all samples across all channels. </summary>
+    /// <summary> Temporal sample count; equivalently, the sample count in each channel. </summary>
     public readonly long Samples;
 
-    /// <summary> Number of SAMPLES in a FRAME. </summary>
-    public readonly int Channels;
+    /// <summary> Count of all scalar sample values across all channels. </summary>
+    public readonly long SampleValues;
 
-    public ACountOf(long byteLength, ASampleFormat fmt, int numChannels)
+    /// <summary> Number of sample values in each sample. </summary>
+    public readonly int ChannelCount;
+
+    public ACountOf(long byteLength, ASampleValueFormat sampleValueFormat, int channelCount)
     {
-        Debug.Assert(numChannels >= 1);
-        Debug.Assert(fmt != ASampleFormat.NONE);
-        var sampleSize = fmt.Size();
-        var frameSize = sampleSize * numChannels;
-        Debug.Assert((byteLength % frameSize) == 0, "Incomplete audio frame.");
+        Debug.Assert(channelCount >= 1);
+        Debug.Assert(sampleValueFormat != ASampleValueFormat.NONE);
+        int sampleValueSize = sampleValueFormat.Size();
+        int sampleFrameSize = sampleValueSize * channelCount;
+        Debug.Assert((byteLength % sampleFrameSize) == 0, "Incomplete PCM sample.");
 
         // TODO: Still undecided what to do when asserts fail.
 
         Bytes = byteLength;
-        BytesInSample = sampleSize;
-        Channels = numChannels;
-        Samples = byteLength / fmt.Size();
-        Frames = Samples / numChannels;
+        BytesPerSampleValue = sampleValueSize;
+        ChannelCount = channelCount;
+        SampleValues = byteLength / sampleValueSize;
+        Samples = SampleValues / channelCount;
     }
 }

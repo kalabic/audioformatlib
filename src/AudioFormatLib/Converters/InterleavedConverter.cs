@@ -6,8 +6,7 @@ namespace AudioFormatLib.Converters;
 
 /// <summary>
 /// 
-/// Convert samples from interleaved input channel inside source frame into interleaved output
-/// channel inside destination frame.
+/// Convert sample values between channels in interleaved source and destination PCM spans.
 /// 
 /// </summary>
 public static class InterleavedConverter
@@ -22,12 +21,12 @@ public static class InterleavedConverter
                                              in AudioSpan input,
                                              in AudioSpan output)
     {
-        Debug.Assert(input.CountOf.Frames <= output.CountOf.Frames);
+        Debug.Assert(input.CountOf.Samples <= output.CountOf.Samples);
         int ccIn = context.SrcChannel.ChannelCount;
         int ccOut = context.DstChannel.ChannelCount;
-        byte* offsetIn = (byte*)input.GetFramePtr<float>(0, context.SrcChannel.Index);
-        byte* offsetOut = (byte*)output.GetFramePtr<float>(0, context.DstChannel.Index);
-        int length = (int)Math.Min(input.LengthSamples, output.LengthSamples);
+        byte* offsetIn = (byte*)input.GetSamplePtr<float>(0, context.SrcChannel.Index);
+        byte* offsetOut = (byte*)output.GetSamplePtr<float>(0, context.DstChannel.Index);
+        int length = (int)Math.Min(input.LengthSampleValues, output.LengthSampleValues);
         FloatPtr_To_FloatPtr_WithOffset(ccIn, ccOut, offsetIn, offsetOut, length);
     }
 
@@ -35,12 +34,12 @@ public static class InterleavedConverter
                                              in AudioSpan input,
                                              in AudioSpan output)
     {
-        Debug.Assert(input.CountOf.Frames <= output.CountOf.Frames);
+        Debug.Assert(input.CountOf.Samples <= output.CountOf.Samples);
         int ccIn = context.SrcChannel.ChannelCount;
         int ccOut = context.DstChannel.ChannelCount;
-        byte* offsetIn = (byte*)input.GetFramePtr<float>(0, context.SrcChannel.Index);
-        byte* offsetOut = (byte*)output.GetFramePtr<short>(0, context.DstChannel.Index);
-        int length = (int)Math.Min(input.LengthSamples, output.LengthSamples);
+        byte* offsetIn = (byte*)input.GetSamplePtr<float>(0, context.SrcChannel.Index);
+        byte* offsetOut = (byte*)output.GetSamplePtr<short>(0, context.DstChannel.Index);
+        int length = (int)Math.Min(input.LengthSampleValues, output.LengthSampleValues);
         FloatPtr_To_ShortPtr_WithOffset(ccIn, ccOut, offsetIn, offsetOut, length);
     }
 
@@ -48,12 +47,12 @@ public static class InterleavedConverter
                                              in AudioSpan input,
                                              in AudioSpan output)
     {
-        Debug.Assert(input.CountOf.Frames <= output.CountOf.Frames);
+        Debug.Assert(input.CountOf.Samples <= output.CountOf.Samples);
         int ccIn = context.SrcChannel.ChannelCount;
         int ccOut = context.DstChannel.ChannelCount;
-        byte* offsetIn = (byte*)input.GetFramePtr<short>(0, context.SrcChannel.Index);
-        byte* offsetOut = (byte*)output.GetFramePtr<float>(0, context.DstChannel.Index);
-        int length = (int)Math.Min(input.LengthSamples, output.LengthSamples);
+        byte* offsetIn = (byte*)input.GetSamplePtr<short>(0, context.SrcChannel.Index);
+        byte* offsetOut = (byte*)output.GetSamplePtr<float>(0, context.DstChannel.Index);
+        int length = (int)Math.Min(input.LengthSampleValues, output.LengthSampleValues);
         ShortPtr_To_FloatPtr_WithOffset(ccIn, ccOut, offsetIn, offsetOut, length);
     }
 
@@ -61,12 +60,12 @@ public static class InterleavedConverter
                                              in AudioSpan input,
                                              in AudioSpan output)
     {
-        Debug.Assert(input.CountOf.Frames <= output.CountOf.Frames);
+        Debug.Assert(input.CountOf.Samples <= output.CountOf.Samples);
         int ccIn = context.SrcChannel.ChannelCount;
         int ccOut = context.DstChannel.ChannelCount;
-        byte* offsetIn = (byte*)input.GetFramePtr<short>(0, context.SrcChannel.Index);
-        byte* offsetOut = (byte*)output.GetFramePtr<short>(0, context.DstChannel.Index);
-        int length = (int)Math.Min(input.LengthSamples, output.LengthSamples);
+        byte* offsetIn = (byte*)input.GetSamplePtr<short>(0, context.SrcChannel.Index);
+        byte* offsetOut = (byte*)output.GetSamplePtr<short>(0, context.DstChannel.Index);
+        int length = (int)Math.Min(input.LengthSampleValues, output.LengthSampleValues);
         ShortPtr_To_ShortPtr_WithOffset(ccIn, ccOut, offsetIn, offsetOut, length);
     }
 

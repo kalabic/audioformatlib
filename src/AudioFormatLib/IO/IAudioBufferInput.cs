@@ -5,7 +5,7 @@ namespace AudioFormatLib.IO;
 
 public interface IAudioBufferInput
 {
-    AFrameFormat Format { get; }
+    APcmFormat Format { get; }
 
     void ClearBuffer();
 

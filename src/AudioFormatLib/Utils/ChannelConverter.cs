@@ -59,7 +59,7 @@ public static unsafe class ChannelConverter
     public static unsafe ConverterParams Get_Func(in AudioSpan source, in AudioSpan destination)
     {
         var DMAP = GetDelegateMap(AChannelId.EveryChannel, AChannelId.EveryChannel);
-        var FUNC = DMAP.GetDelegate(source.SampleFormat, destination.SampleFormat);
+        var FUNC = DMAP.GetDelegate(source.SampleValueFormat, destination.SampleValueFormat);
         var CP = new ConverterParams(AChannelId.EveryChannel, AChannelId.EveryChannel)
         {
             Func = FUNC
@@ -72,7 +72,7 @@ public static unsafe class ChannelConverter
                                                   in AChannelId destinationChannel)
     {
         var DMAP = GetDelegateMap(AChannelId.MonoTrack, destinationChannel);
-        var FUNC = DMAP.GetDelegate(source.SampleFormat, destination.SampleFormat);
+        var FUNC = DMAP.GetDelegate(source.SampleValueFormat, destination.SampleValueFormat);
         var CP = new ConverterParams(AChannelId.MonoTrack, destinationChannel)
         {
             Func = FUNC
@@ -84,7 +84,7 @@ public static unsafe class ChannelConverter
                                                   in AChannelId sourceChannel, in AChannelId destinationChannel)
     {
         var DMAP = GetDelegateMap(sourceChannel, destinationChannel);
-        var FUNC = DMAP.GetDelegate(source.SampleFormat, destination.SampleFormat);
+        var FUNC = DMAP.GetDelegate(source.SampleValueFormat, destination.SampleValueFormat);
         var CP = new ConverterParams(sourceChannel, destinationChannel)
         {
             Func = FUNC

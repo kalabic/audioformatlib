@@ -10,13 +10,13 @@ public class AudioResampler
 {
     public static AudioResampler Create(AResamplerParams RP)
     {
-        if (RP.Input.NumChannels < 1 || RP.Input.NumChannels > 2 || RP.Output.NumChannels < 0 || RP.Output.NumChannels > 2)
+        if (RP.Input.ChannelCount < 1 || RP.Input.ChannelCount > 2 || RP.Output.ChannelCount < 0 || RP.Output.ChannelCount > 2)
         {
             throw new ArgumentException("Unsupported number of channels.");
         }
-        if (RP.Input.SampleFormat != ASampleFormat.S16)
+        if (RP.Input.SampleValueFormat != ASampleValueFormat.S16)
         {
-            throw new ArgumentException("Unsupported sample format.");
+            throw new ArgumentException("Unsupported sample-value format.");
         }
         if (RP.Factor == 0.0f)
         {
@@ -30,7 +30,7 @@ public class AudioResampler
         {
             RP.Output.SampleRate = ATools.CalcOutputSampleRate(RP.Factor, RP.Input.SampleRate, RP.Output.SampleRate);
         }
-        RP.Output = (RP.Output.SampleFormat == ASampleFormat.NONE) ? RP.Input : RP.Output;
+        RP.Output = (RP.Output.SampleValueFormat == ASampleValueFormat.NONE) ? RP.Input : RP.Output;
         return new AudioResampler(RP);
     }
 
@@ -64,8 +64,8 @@ public class AudioResampler
         : base(RP.Input, RP.Output)
     {
         _RP = RP;
-        _resamplers = new ChannelResampler[RP.NumChannels];
-        for (int i = 0; i < RP.NumChannels; i++)
+        _resamplers = new ChannelResampler[RP.ChannelCount];
+        for (int i = 0; i < RP.ChannelCount; i++)
         {
             _resamplers[i] = new ChannelResampler(RP.HighQuality, RP.Factor);
         }
@@ -82,23 +82,23 @@ public class AudioResampler
         base.Dispose(disposing);
     }
 
-    protected long Process(bool lastFrame)
+    protected long Process(bool endOfInput)
     {
-        long samplesWritten = 0;
-        long samplesRead = 0;
-        for (int i=0; i < _RP.NumChannels; i++)
+        long sampleValuesWritten = 0;
+        long sampleValuesRead = 0;
+        for (int i=0; i < _RP.ChannelCount; i++)
         {
             var producer = _coupler.GetProducer(i);
             var consumer = _coupler.GetConsumer(i);
-            _resamplers[i].ProcessInput(_RP.Factor, lastFrame, producer, consumer);
-            samplesRead += producer.SamplesRead;
-            samplesWritten += consumer.SamplesWritten;
+            _resamplers[i].ProcessInput(_RP.Factor, endOfInput, producer, consumer);
+            sampleValuesRead += producer.SampleValuesRead;
+            sampleValuesWritten += consumer.SampleValuesWritten;
         }
 
         _inPacketCount++;
-        _inBytesProcessed += samplesRead * _RP.Input.SampleFormat.Size();
-        _outBytesGenerated += samplesWritten * _RP.Output.SampleFormat.Size();
-        return samplesWritten;
+        _inBytesProcessed += sampleValuesRead * _RP.Input.SampleValueFormat.Size();
+        _outBytesGenerated += sampleValuesWritten * _RP.Output.SampleValueFormat.Size();
+        return sampleValuesWritten;
     }
 
     /// <summary>
@@ -138,13 +138,20 @@ public class AudioResampler
         return Process(input, 0, input.LongLength);
     }
 
-    public T[] Process<T>(T[] input, long offset, long length)
+    public T[] Process<T>(T[] input, long sampleValueOffset, long sampleValueCount)
         where T : unmanaged
     {
-        long expectedSize = (int)Params.GetExpectedOutputSize(length);
-        T[] output = new T[expectedSize];
-        long outputSize = Process<T, T>(input, offset, length, output, 0, expectedSize, false);
-        Array.Resize(ref output, (int)outputSize);
+        long outputCapacity = Params.GetExpectedOutputSampleValueCapacity(sampleValueCount);
+        T[] output = new T[outputCapacity];
+        long outputSampleValueCount = Process<T, T>(
+            input,
+            sampleValueOffset,
+            sampleValueCount,
+            output,
+            0,
+            outputCapacity,
+            false);
+        Array.Resize(ref output, (int)outputSampleValueCount);
         return output;
     }
 }

@@ -8,7 +8,7 @@
 /// </summary>
 public abstract class IAudioStreamInput : Stream
 {
-    public abstract AFrameFormat Format { get; }
+    public abstract APcmFormat Format { get; }
 
     //
     // System.IO.Stream

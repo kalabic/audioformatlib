@@ -6,7 +6,7 @@ namespace AudioFormatLib.Converters;
 
 /// <summary>
 /// 
-/// Treat data inside source and destination frames like they are a simple single-channel audio.
+/// Convert sample values between planar source and destination PCM spans.
 /// 
 /// </summary>
 public static class PlanarConverter
@@ -21,21 +21,21 @@ public static class PlanarConverter
                                              in AudioSpan input,
                                              in AudioSpan output)
     {
-        Debug.Assert(input.CountOf.Frames <= output.CountOf.Frames);
-        byte* offsetIn = (byte*)input.GetFramePtr<float>(0, 0);
-        byte* offsetOut = (byte*)output.GetFramePtr<float>(0, 0);
-        int length = (int)Math.Min(input.LengthFrames, output.LengthFrames);
-        Buffer.MemoryCopy(offsetIn, offsetOut, output.Length, length * output.CountOf.BytesInFrame);
+        Debug.Assert(input.CountOf.Samples <= output.CountOf.Samples);
+        byte* offsetIn = (byte*)input.GetSamplePtr<float>(0, 0);
+        byte* offsetOut = (byte*)output.GetSamplePtr<float>(0, 0);
+        int length = (int)Math.Min(input.LengthSamples, output.LengthSamples);
+        Buffer.MemoryCopy(offsetIn, offsetOut, output.Length, length * output.CountOf.BytesPerSampleFrame);
     }
 
     public static unsafe void Float_To_Short(in ConverterParams context,
                                              in AudioSpan input,
                                              in AudioSpan output)
     {
-        Debug.Assert(input.CountOf.Frames <= output.CountOf.Frames);
-        byte* offsetIn = (byte*)input.GetFramePtr<float>(0, 0);
-        byte* offsetOut = (byte*)output.GetFramePtr<short>(0, 0);
-        int length = (int)Math.Min(input.LengthFrames, output.LengthFrames);
+        Debug.Assert(input.CountOf.Samples <= output.CountOf.Samples);
+        byte* offsetIn = (byte*)input.GetSamplePtr<float>(0, 0);
+        byte* offsetOut = (byte*)output.GetSamplePtr<short>(0, 0);
+        int length = (int)Math.Min(input.LengthSamples, output.LengthSamples);
         FloatPtr_To_ShortPtr_WithOffset(offsetIn, offsetOut, length);
     }
 
@@ -43,10 +43,10 @@ public static class PlanarConverter
                                              in AudioSpan input,
                                              in AudioSpan output)
     {
-        Debug.Assert(input.CountOf.Frames <= output.CountOf.Frames);
-        byte* offsetIn = (byte*)input.GetFramePtr<short>(0, 0);
-        byte* offsetOut = (byte*)output.GetFramePtr<float>(0, 0);
-        int length = (int)Math.Min(input.LengthFrames, output.LengthFrames);
+        Debug.Assert(input.CountOf.Samples <= output.CountOf.Samples);
+        byte* offsetIn = (byte*)input.GetSamplePtr<short>(0, 0);
+        byte* offsetOut = (byte*)output.GetSamplePtr<float>(0, 0);
+        int length = (int)Math.Min(input.LengthSamples, output.LengthSamples);
         ShortPtr_To_FloatPtr_WithOffset(offsetIn, offsetOut, length);
     }
 
@@ -54,11 +54,11 @@ public static class PlanarConverter
                                              in AudioSpan input,
                                              in AudioSpan output)
     {
-        Debug.Assert(input.CountOf.Frames <= output.CountOf.Frames);
-        byte* offsetIn = (byte*)input.GetFramePtr<short>(0, 0);
-        byte* offsetOut = (byte*)output.GetFramePtr<short>(0, 0);
-        int length = (int)Math.Min(input.LengthFrames, output.LengthFrames);
-        Buffer.MemoryCopy(offsetIn, offsetOut, output.Length, length * output.CountOf.BytesInFrame);
+        Debug.Assert(input.CountOf.Samples <= output.CountOf.Samples);
+        byte* offsetIn = (byte*)input.GetSamplePtr<short>(0, 0);
+        byte* offsetOut = (byte*)output.GetSamplePtr<short>(0, 0);
+        int length = (int)Math.Min(input.LengthSamples, output.LengthSamples);
+        Buffer.MemoryCopy(offsetIn, offsetOut, output.Length, length * output.CountOf.BytesPerSampleFrame);
     }
 
     public static unsafe void Float_To_ShortPtr(ConverterParams context, float[] input, long offset, long length, byte* output, long outOffset)

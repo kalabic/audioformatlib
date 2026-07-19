@@ -42,7 +42,7 @@ public readonly struct DelegateMap
         return Map[STI].Delegates[DTI];
     }
 
-    public unsafe delegate*<in ConverterParams, in AudioSpan, in AudioSpan, void> GetDelegate(ASampleFormat source, ASampleFormat destination)
+    public unsafe delegate*<in ConverterParams, in AudioSpan, in AudioSpan, void> GetDelegate(ASampleValueFormat source, ASampleValueFormat destination)
     {
         var STI = source.ConverterIndex();
         var DTI = destination.ConverterIndex();
@@ -53,8 +53,8 @@ public readonly struct DelegateMap
         where IN : unmanaged
         where OUT : unmanaged
     {
-        var STI = ASampleFormat.NONE.DefaultForType<IN>().ConverterIndex();
-        var DTI = ASampleFormat.NONE.DefaultForType<OUT>().ConverterIndex();
+        var STI = ASampleValueFormat.NONE.DefaultForType<IN>().ConverterIndex();
+        var DTI = ASampleValueFormat.NONE.DefaultForType<OUT>().ConverterIndex();
         return GetDelegate(STI, DTI);
     }
 }

@@ -5,15 +5,15 @@ namespace AudioFormatLib.Buffers;
 
 internal class SharedAudioStreamInput : IAudioStreamInput
 {
-    public override AFrameFormat Format => throw new NotImplementedException();
+    public override APcmFormat Format => throw new NotImplementedException();
 
 
-    private readonly AFrameFormat _format;
+    private readonly APcmFormat _format;
 
     /// <summary> Externally managed buffer. </summary>
     private readonly IUnsafeBuffer _buffer;
 
-    public SharedAudioStreamInput(AFrameFormat format, IUnsafeBuffer sharedBuffer)
+    public SharedAudioStreamInput(APcmFormat format, IUnsafeBuffer sharedBuffer)
     {
         _format = format;
         _buffer = sharedBuffer;

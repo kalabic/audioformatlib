@@ -3,7 +3,7 @@
 
 public interface IAudioInputs
 {
-    AFrameFormat Format { get; }
+    APcmFormat Format { get; }
 
     IAudioBufferInput Buffer { get; }
 

@@ -18,48 +18,48 @@ namespace AudioFormatLib;
 
 /// <summary>
 /// 
-/// This structure holds a description of a channel layout inside audio frame.
+/// Describes the channels and planar/interleaved storage of PCM samples.
 /// 
 /// </summary>
 public struct AChannelLayout
 {
-    /// <summary> For convenience when dealing with a mono audio frame. </summary>
+    /// <summary> For convenience when dealing with mono PCM. </summary>
     public static readonly AChannelLayout MonoAudio = new AChannelLayout(1);
 
-    /// <summary> For convenience when dealing with a stereo audio frame. </summary>
+    /// <summary> For convenience when dealing with stereo PCM. </summary>
     public static readonly AChannelLayout StereoAudio = new AChannelLayout(2);
 
 
 
-    /// <summary> For convenience when dealing with a mono audio frame. </summary>
+    /// <summary> For convenience when dealing with a mono sample. </summary>
     public AChannelId MonoTrack { get { Debug.Assert(_count == 1); return GetChannelIndex(0); } }
 
-    /// <summary> For convenience when dealing with a stereo audio frame. </summary>
+    /// <summary> For convenience when dealing with a stereo sample. </summary>
     public AChannelId Left { get { Debug.Assert(_count == 2); return GetChannelIndex(0); } }
 
-    /// <summary> For convenience when dealing with a stereo audio frame. </summary>
+    /// <summary> For convenience when dealing with a stereo sample. </summary>
     public AChannelId Right { get { Debug.Assert(_count == 2); return GetChannelIndex(1); } }
 
-    /// <summary> Number of channels in an audio frame. </summary>
+    /// <summary> Number of sample values in each sample. </summary>
     public int Count { get { return _count; } }
 
     /// <summary> WIP: Pretty ignorant (for now). </summary>
-    public AFrameLayout Layout { get { return _layout; } }
+    public APcmLayout Layout { get { return _layout; } }
 
-    /// <summary> Single-channel audio frames (mono) are always considered to be 'planar'. </summary>
-    public bool IsPlanar { get { return _layout == AFrameLayout.PLANAR; } }
+    /// <summary> Single-channel PCM is always considered planar. </summary>
+    public bool IsPlanar { get { return _layout == APcmLayout.PLANAR; } }
 
-    /// <summary> Single-channel audio frames (mono) are always considered to be 'planar'. </summary>
-    public bool IsInterleaved { get { return _layout == AFrameLayout.INTERLEAVED; } }
+    /// <summary> True when channel sample values are interleaved. </summary>
+    public bool IsInterleaved { get { return _layout == APcmLayout.INTERLEAVED; } }
 
 
     private readonly int _count;
 
-    private readonly AFrameLayout _layout;
+    private readonly APcmLayout _layout;
 
     /// <summary>
     /// 
-    /// Layout will always be set to <see cref="AFrameLayout.PLANAR"/> if
+    /// Layout will always be set to <see cref="APcmLayout.PLANAR"/> if
     /// <paramref name="count"/> is equal to 1.
     /// 
     /// </summary>
@@ -68,7 +68,7 @@ public struct AChannelLayout
     public AChannelLayout(int count, bool planar = false)
     {
         _count = count;
-        _layout = (planar || (count == 1)) ? AFrameLayout.PLANAR : AFrameLayout.INTERLEAVED;
+        _layout = (planar || (count == 1)) ? APcmLayout.PLANAR : APcmLayout.INTERLEAVED;
     }
 
     public AChannelId GetChannelIndex(int index)

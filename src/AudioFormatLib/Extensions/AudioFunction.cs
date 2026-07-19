@@ -13,20 +13,20 @@ namespace AudioFormatLib.Extensions;
 public abstract class AudioFunction<ParamsT, ResultT>
     : DisposableBase
 {
-    public AFrameFormat InputFormat { get { return _inputFormat; } }
+    public APcmFormat InputFormat { get { return _inputFormat; } }
 
-    public AFrameFormat OutputFormat { get { return _outputFormat; } }
-
-
-    private AFrameFormat _inputFormat;
-
-    private AFrameFormat _outputFormat;
+    public APcmFormat OutputFormat { get { return _outputFormat; } }
 
 
-    protected AudioFunction(in AFrameFormat input, in AFrameFormat output)
+    private APcmFormat _inputFormat;
+
+    private APcmFormat _outputFormat;
+
+
+    protected AudioFunction(in APcmFormat input, in APcmFormat output)
         : base()
     {
-        Debug.Assert(input.NumChannels == output.NumChannels); // WIP
+        Debug.Assert(input.ChannelCount == output.ChannelCount); // WIP
         _inputFormat = input;
         _outputFormat = output;
     }
@@ -68,8 +68,8 @@ public abstract class AudioFunction<ParamsT, ResultT>
          where IN : unmanaged
          where OUT : unmanaged
     {
-        Debug.Assert(_inputFormat.SampleFormat == input.Format);
-        Debug.Assert(_outputFormat.SampleFormat == output.Format);
+        Debug.Assert(_inputFormat.SampleValueFormat == input.Format);
+        Debug.Assert(_outputFormat.SampleValueFormat == output.Format);
 
         using var fixedInput = input.MakeFixed();
         using var fixedOutput = output.MakeFixed();

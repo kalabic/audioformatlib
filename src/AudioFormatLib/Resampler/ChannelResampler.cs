@@ -58,29 +58,29 @@ namespace AudioFormatLib.Resampler
     /// <summary>
     /// 
     /// Single audio channel resampler is a wrapper around instance of <see cref="ReSampler"/> and
-    /// provides it with an interface for on-the-fly conversion of input and output sample data.
+    /// provides it with an interface for on-the-fly conversion of input and output sample values.
     /// 
-    /// <para> For now, the only supported sample format is signed 16-bit. </para>
+    /// <para>For now, the only supported sample-value format is signed 16-bit.</para>
     /// 
     /// </summary>
     public unsafe class ChannelResampler
     {
-        public long SamplesRead { get { return _samplesRead; } }
+        public long SampleValuesRead { get { return _sampleValuesRead; } }
 
-        public long SamplesWritten { get { return _samplesWritten; } }
+        public long SampleValuesWritten { get { return _sampleValuesWritten; } }
 
 
         private ReSampler _resampler;
 
-        private long _samplesRead = 0;
+        private long _sampleValuesRead = 0;
 
-        private long _samplesWritten = 0;
+        private long _sampleValuesWritten = 0;
 
 
         /// <summary>
         /// 
         /// Create indenpendent instance of <see cref="ReSampler"/>. It is necessary to create an instance for
-        /// each and every channel in case of multi-channel audio frame.
+        /// each channel in multi-channel PCM.
         /// 
         /// </summary>
         /// <param name="highQuality"></param>
@@ -91,11 +91,11 @@ namespace AudioFormatLib.Resampler
         }
 
 
-        internal unsafe bool ProcessInput(float factor, bool lastPacket, IInputProducer<float> producer, IOutputConsumer<float> consumer)
+        internal unsafe bool ProcessInput(float factor, bool endOfInput, IInputProducer<float> producer, IOutputConsumer<float> consumer)
         {
-            bool result = _resampler.Process(factor, producer, consumer, lastPacket);
-            _samplesRead += producer.SamplesRead;
-            _samplesWritten += consumer.SamplesWritten;
+            bool result = _resampler.Process(factor, producer, consumer, endOfInput);
+            _sampleValuesRead += producer.SampleValuesRead;
+            _sampleValuesWritten += consumer.SampleValuesWritten;
             return result;
         }
     }

@@ -11,43 +11,43 @@ public enum ChannelMapping : int
 
 public static class ChannelMappingMethods
 {
-    public static AFrameLayout SourceLayout(this ChannelMapping mapping)
+    public static APcmLayout SourceLayout(this ChannelMapping mapping)
     {
         switch (mapping)
         {
             case ChannelMapping.PLANAR:
-                return AFrameLayout.PLANAR;
+                return APcmLayout.PLANAR;
 
             case ChannelMapping.PLANAR_TO_INTERLEAVED:
-                return AFrameLayout.PLANAR;
+                return APcmLayout.PLANAR;
 
             case ChannelMapping.INTERLEAVED_TO_PLANAR:
-                return AFrameLayout.INTERLEAVED;
+                return APcmLayout.INTERLEAVED;
 
             case ChannelMapping.INTERLEAVED:
-                return AFrameLayout.INTERLEAVED;
+                return APcmLayout.INTERLEAVED;
         }
 
-        return AFrameLayout.NONE;
+        return APcmLayout.NONE;
     }
 
-    public static AFrameLayout DestinationLayout(this ChannelMapping mapping)
+    public static APcmLayout DestinationLayout(this ChannelMapping mapping)
     {
         switch (mapping)
         {
             case ChannelMapping.PLANAR:
-                return AFrameLayout.PLANAR;
+                return APcmLayout.PLANAR;
 
             case ChannelMapping.PLANAR_TO_INTERLEAVED:
-                return AFrameLayout.INTERLEAVED;
+                return APcmLayout.INTERLEAVED;
 
             case ChannelMapping.INTERLEAVED_TO_PLANAR:
-                return AFrameLayout.PLANAR;
+                return APcmLayout.PLANAR;
 
             case ChannelMapping.INTERLEAVED:
-                return AFrameLayout.INTERLEAVED;
+                return APcmLayout.INTERLEAVED;
         }
 
-        return AFrameLayout.NONE;
+        return APcmLayout.NONE;
     }
 }

@@ -18,7 +18,7 @@ namespace AudioFormatLib;
 
 /// <summary>
 /// 
-/// This structure identifies a single channel among others in a single or multi-channel audio frame.
+/// Identifies one channel in a mono or multi-channel PCM sample.
 /// 
 /// </summary>
 public struct AChannelId
@@ -26,17 +26,17 @@ public struct AChannelId
     /// <summary> A channel Id that represents all tracks. </summary>
     public static readonly AChannelId EveryChannel = new AChannelId();
 
-    /// <summary> For convenience when dealing with a mono audio frame. </summary>
+    /// <summary> For convenience when dealing with a mono sample. </summary>
     public static readonly AChannelId MonoTrack = new AChannelId(0);
 
-    /// <summary> For convenience when dealing with a left channel of a stereo audio frame. </summary>
+    /// <summary> For convenience when dealing with the left channel of a stereo sample. </summary>
     public static readonly AChannelId LeftStereo = new AChannelId(0, 2);
 
-    /// <summary> For convenience when dealing with a right channel of a stereo audio frame. </summary>
+    /// <summary> For convenience when dealing with the right channel of a stereo sample. </summary>
     public static readonly AChannelId RightStereo = new AChannelId(1, 2);
 
 
-    /// <summary> Total count of channels in an audio frame. </summary>
+    /// <summary> Total count of channels in a sample. </summary>
     public int ChannelCount { get { return _channelCount; } }
 
     /// <summary> Index of a channel this instance identifies. </summary>
@@ -60,7 +60,7 @@ public struct AChannelId
 
     /// <summary>
     /// 
-    /// Use <see cref="AChannelId.MonoTrack"/> instead of this. Return channel index structure when it's an only channel inside mono audio frame.
+    /// Use <see cref="AChannelId.MonoTrack"/> instead. Creates the only channel in a mono sample.
     /// 
     /// </summary>
     /// <param name="index">Must be 0.</param>

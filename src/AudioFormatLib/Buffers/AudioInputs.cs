@@ -5,7 +5,7 @@ namespace AudioFormatLib.Buffers;
 
 internal class AudioInputs : IAudioInputs
 {
-    public AFrameFormat Format { get { return _format; } }
+    public APcmFormat Format { get { return _format; } }
 
     public IAudioBufferInput Buffer { get { return _bufferInput; } }
 
@@ -13,7 +13,7 @@ internal class AudioInputs : IAudioInputs
 
 
 
-    private readonly AFrameFormat _format;
+    private readonly APcmFormat _format;
 
     private readonly IAudioBufferInput _bufferInput;
 

@@ -17,10 +17,10 @@ namespace AudioFormatLib;
 
 
 /// <summary>
-/// A sample represents single scalar amplitude value at a specific timestamp. Intention is
-/// to keep these values the same/compatible as in AVSampleFormat found in FFmpeg library.
+/// Describes the scalar representation of one channel's sample value. Values intentionally
+/// remain compatible with AVSampleFormat in FFmpeg.
 /// </summary>
-public enum ASampleFormat : int
+public enum ASampleValueFormat : int
 {
     NONE = -1,
 
@@ -61,65 +61,65 @@ public enum ASampleFormat : int
     P_S64 = 11,
 }
 
-public static class ASampleFormatMethods
+public static class ASampleValueFormatMethods
 {
-    public static ASampleFormat DefaultForType<T>(this ASampleFormat id)
+    public static ASampleValueFormat DefaultForType<T>(this ASampleValueFormat id)
         where T : unmanaged
     {
         if (GenericType<T>.IsByte)
         {
-            return ASampleFormat.U8;
+            return ASampleValueFormat.U8;
         }
         if (GenericType<T>.IsDouble)
         {
-            return ASampleFormat.DOUBLE;
+            return ASampleValueFormat.DOUBLE;
         }
         if (GenericType<T>.IsFloat)
         {
-            return ASampleFormat.FLOAT;
+            return ASampleValueFormat.FLOAT;
         }
         if (GenericType<T>.IsInt)
         {
-            return ASampleFormat.S32;
+            return ASampleValueFormat.S32;
         }
         if (GenericType<T>.IsShort)
         {
-            return ASampleFormat.S16;
+            return ASampleValueFormat.S16;
         }
 
-        return ASampleFormat.NONE;
+        return ASampleValueFormat.NONE;
     }
 
-    public static bool IsCompatible<T>(this ASampleFormat id)
+    public static bool IsCompatible<T>(this ASampleValueFormat id)
         where T : unmanaged
     {
         switch (id)
         {
-            case ASampleFormat.NONE:
+            case ASampleValueFormat.NONE:
                 return false;
 
-            case ASampleFormat.U8:
-            case ASampleFormat.P_U8:
+            case ASampleValueFormat.U8:
+            case ASampleValueFormat.P_U8:
                 return GenericType<T>.IsUInt8;
 
-            case ASampleFormat.S16:
-            case ASampleFormat.P_S16:
+            case ASampleValueFormat.S16:
+            case ASampleValueFormat.P_S16:
                 return GenericType<T>.IsShort;
 
-            case ASampleFormat.FLOAT:
-            case ASampleFormat.P_FLOAT:
+            case ASampleValueFormat.FLOAT:
+            case ASampleValueFormat.P_FLOAT:
                 return GenericType<T>.IsFloat;
 
-            case ASampleFormat.S32:
-            case ASampleFormat.P_S32:
+            case ASampleValueFormat.S32:
+            case ASampleValueFormat.P_S32:
                 return GenericType<T>.IsInt;
 
-            case ASampleFormat.DOUBLE:
-            case ASampleFormat.P_DOUBLE:
+            case ASampleValueFormat.DOUBLE:
+            case ASampleValueFormat.P_DOUBLE:
                 return GenericType<T>.IsDouble;
 
-            case ASampleFormat.S64:
-            case ASampleFormat.P_S64:
+            case ASampleValueFormat.S64:
+            case ASampleValueFormat.P_S64:
                 return GenericType<T>.IsLong;
 
             default:
@@ -127,31 +127,31 @@ public static class ASampleFormatMethods
         }
     }
 
-    public static int Bits(this ASampleFormat id)
+    public static int Bits(this ASampleValueFormat id)
     {
         switch (id)
         {
-            case ASampleFormat.NONE:
+            case ASampleValueFormat.NONE:
                 return 0;
 
-            case ASampleFormat.U8:
-            case ASampleFormat.P_U8:
+            case ASampleValueFormat.U8:
+            case ASampleValueFormat.P_U8:
                 return 8;
 
-            case ASampleFormat.S16:
-            case ASampleFormat.P_S16:
+            case ASampleValueFormat.S16:
+            case ASampleValueFormat.P_S16:
                 return 16;
 
-            case ASampleFormat.FLOAT:
-            case ASampleFormat.P_FLOAT:
-            case ASampleFormat.S32:
-            case ASampleFormat.P_S32:
+            case ASampleValueFormat.FLOAT:
+            case ASampleValueFormat.P_FLOAT:
+            case ASampleValueFormat.S32:
+            case ASampleValueFormat.P_S32:
                 return 32;
 
-            case ASampleFormat.DOUBLE:
-            case ASampleFormat.P_DOUBLE:
-            case ASampleFormat.S64:
-            case ASampleFormat.P_S64:
+            case ASampleValueFormat.DOUBLE:
+            case ASampleValueFormat.P_DOUBLE:
+            case ASampleValueFormat.S64:
+            case ASampleValueFormat.P_S64:
                 return 64;
 
             default:
@@ -159,37 +159,37 @@ public static class ASampleFormatMethods
         }
     }
 
-    public static int Size(this ASampleFormat id)
+    public static int Size(this ASampleValueFormat id)
     {
         return id.Bits() / 8;
     }
 
-    public static long ToByteCount(this ASampleFormat id, long sampleCount)
+    public static long ToByteCount(this ASampleValueFormat id, long sampleValueCount)
     {
-        return id.Bits() * sampleCount / 8;
+        return id.Bits() * sampleValueCount / 8;
     }
 
-    public static int ConverterIndex(this ASampleFormat id)
+    public static int ConverterIndex(this ASampleValueFormat id)
     {
         switch (id)
         {
-            case ASampleFormat.FLOAT:
-            case ASampleFormat.P_FLOAT:
+            case ASampleValueFormat.FLOAT:
+            case ASampleValueFormat.P_FLOAT:
                 return 0;
 
-            case ASampleFormat.S16:
-            case ASampleFormat.P_S16:
+            case ASampleValueFormat.S16:
+            case ASampleValueFormat.P_S16:
                 return 1;
 
-            case ASampleFormat.NONE:
-            case ASampleFormat.U8:
-            case ASampleFormat.P_U8:
-            case ASampleFormat.S32:
-            case ASampleFormat.P_S32:
-            case ASampleFormat.DOUBLE:
-            case ASampleFormat.P_DOUBLE:
-            case ASampleFormat.S64:
-            case ASampleFormat.P_S64:
+            case ASampleValueFormat.NONE:
+            case ASampleValueFormat.U8:
+            case ASampleValueFormat.P_U8:
+            case ASampleValueFormat.S32:
+            case ASampleValueFormat.P_S32:
+            case ASampleValueFormat.DOUBLE:
+            case ASampleValueFormat.P_DOUBLE:
+            case ASampleValueFormat.S64:
+            case ASampleValueFormat.P_S64:
                 return -1; // WIP
 
             default:

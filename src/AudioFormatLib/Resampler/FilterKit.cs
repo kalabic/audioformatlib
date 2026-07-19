@@ -146,8 +146,8 @@ namespace AudioFormatLib.Resampler
         /// <param name="impd">impulse response deltas</param>
         /// <param name="nwing">length of one wing of filter</param>
         /// <param name="interp">interpolate coefs using deltas</param>
-        /// <param name="xpArray">current sample array</param>
-        /// <param name="xpIndex">current sample index</param>
+        /// <param name="xpArray">Current sample-value array.</param>
+        /// <param name="xpIndex">Current sample-value index.</param>
         /// <param name="ph">phase</param>
         /// <param name="inc">increment (1 for right wing or -1 for left)</param>
         /// <returns></returns>
@@ -180,7 +180,7 @@ namespace AudioFormatLib.Resampler
                 endIndex--; // 0.5 we don't do too many mult's
                 if (ph.Equals(0))
                 {
-                    hpIndex += ReSampler.Npc; // first sample, so we must also 
+                    hpIndex += ReSampler.Npc; // first sample value, so we must also
                     hdpIndex += ReSampler.Npc; // skip ahead in imp[] and impd[]
                 }
             }
@@ -219,8 +219,8 @@ namespace AudioFormatLib.Resampler
         /// <param name="impd">impulse response deltas</param>
         /// <param name="nwing">length of one wing of filter</param>
         /// <param name="interp">interpolate coefs using deltas</param>
-        /// <param name="xpArray">current sample array</param>
-        /// <param name="xpIndex">current sample index</param>
+        /// <param name="xpArray">Current sample-value array.</param>
+        /// <param name="xpIndex">Current sample-value index.</param>
         /// <param name="ph">phase</param>
         /// <param name="inc">increment (1 for right wing or -1 for left)</param>
         /// <param name="dhb">filter sampling period</param>

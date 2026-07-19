@@ -178,8 +178,8 @@ namespace AudioFormatLib.Resampler
         private readonly int _xSize;
         private readonly float[] _y;
         private double _time;
-        private int _xp; // current "now"-sample pointer for input
-        private int _xread; // position to put new samples
+        private int _xp; // current "now" sample-value pointer for input
+        private int _xread; // position to put new sample values
         private int _yp;
 
         /// <summary>
@@ -247,15 +247,15 @@ namespace AudioFormatLib.Resampler
             return _xoff;
         }
 
-        internal bool Process(double factor, IInputProducer<float> input, IOutputConsumer<float> output, bool lastBatch)
+        internal bool Process(double factor, IInputProducer<float> input, IOutputConsumer<float> output, bool endOfInput)
         {
             if (factor < _minFactor || factor > _maxFactor)
             {
                 throw new ArgumentException("factor" + factor + "is not between minFactor=" + _minFactor + " and maxFactor=" + _maxFactor);
             }
 
-            int outBufferLen = (int)output.GetOutputBufferLength();
-            int inBufferLen = (int)input.GetInputBufferLength();
+            int outputSampleValueCapacity = (int)output.GetOutputBufferLength();
+            int inputSampleValueCount = (int)input.GetInputBufferLength();
 
             float[] imp = _imp;
             float[] impD = _impD;
@@ -263,16 +263,16 @@ namespace AudioFormatLib.Resampler
             int nwing = _nwing;
             bool interpFilt = false;
 
-            int inBufferUsed = 0;
-            int outSampleCount = 0;
+            int inputSampleValuesUsed = 0;
+            int outputSampleValueCount = 0;
 
-            if ((_yp != 0) && (outBufferLen - outSampleCount) > 0)
+            if ((_yp != 0) && (outputSampleValueCapacity - outputSampleValueCount) > 0)
             {
-                int len = Math.Min(outBufferLen - outSampleCount, _yp);
+                int len = Math.Min(outputSampleValueCapacity - outputSampleValueCount, _yp);
 
                 output.ConsumeOutput(_y, 0, len);
 
-                outSampleCount += len;
+                outputSampleValueCount += len;
                 for (int i = 0; i < _yp - len; i++)
                 {
                     _y[i] = _y[i + len];
@@ -282,7 +282,7 @@ namespace AudioFormatLib.Resampler
 
             if (_yp != 0)
             {
-                return inBufferUsed == 0 && outSampleCount == 0;
+                return inputSampleValuesUsed == 0 && outputSampleValueCount == 0;
             }
 
             if (factor < 1)
@@ -294,18 +294,18 @@ namespace AudioFormatLib.Resampler
             {
                 int len = _xSize - _xread;
 
-                if (len >= inBufferLen - inBufferUsed)
+                if (len >= inputSampleValueCount - inputSampleValuesUsed)
                 {
-                    len = inBufferLen - inBufferUsed;
+                    len = inputSampleValueCount - inputSampleValuesUsed;
                 }
 
                 input.ProduceInput(_x, _xread, len);
 
-                inBufferUsed += len;
+                inputSampleValuesUsed += len;
                 _xread += len;
 
                 int nx;
-                if (lastBatch && (inBufferUsed == inBufferLen))
+                if (endOfInput && (inputSampleValuesUsed == inputSampleValueCount))
                 {
                     nx = _xread - _xoff;
                     for (int i = 0; i < _xoff; i++)
@@ -357,12 +357,12 @@ namespace AudioFormatLib.Resampler
 
                 _yp = nout;
 
-                if (_yp != 0 && (outBufferLen - outSampleCount) > 0)
+                if (_yp != 0 && (outputSampleValueCapacity - outputSampleValueCount) > 0)
                 {
-                    len = Math.Min(outBufferLen - outSampleCount, _yp);
+                    len = Math.Min(outputSampleValueCapacity - outputSampleValueCount, _yp);
 
                     output.ConsumeOutput(_y, 0, len);
-                    outSampleCount += len;
+                    outputSampleValueCount += len;
                     for (int i = 0; i < _yp - len; i++)
                     {
                         _y[i] = _y[i + len];
@@ -376,7 +376,7 @@ namespace AudioFormatLib.Resampler
                 }
             }
 
-            return inBufferUsed == 0 && outSampleCount == 0;
+            return inputSampleValuesUsed == 0 && outputSampleValueCount == 0;
         }
 
         private int LrsSrcUp(float[] x, float[] y, double factor, int nx, int nwing, float lpScl, float[] imp, float[] impD, bool interp)

@@ -10,7 +10,7 @@ public struct ABufferParams
 
     public bool WaitForCompleteRead { get; set; }
 
-    public AFrameFormat Format { get; set; }
+    public APcmFormat Format { get; set; }
 
     public int BufferSize 
     { 
@@ -19,7 +19,7 @@ public struct ABufferParams
         set 
         { 
             Debug.Assert(value > 0);
-            Debug.Assert((value % Format.FrameSize) == 0);
+            Debug.Assert((value % Format.BytesPerSampleFrame) == 0);
             _bufferSize = value;
         }
     }
@@ -30,7 +30,7 @@ public struct ABufferParams
     {
     }
 
-    public ABufferParams(AFrameFormat format)
+    public ABufferParams(APcmFormat format)
     {
         Format = format;
         BufferSize = (int)format.BufferSizeFromMiliseconds(DEFAULT_SIZE_MILISECONDS);

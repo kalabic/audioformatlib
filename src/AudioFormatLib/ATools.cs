@@ -42,8 +42,8 @@ public static class ATools
 
 
     /// <summary> WIP </summary>
-    public static unsafe void Convert(byte* input, long offset, long length, AFrameFormat inputFormat,
-                                      byte* output, long outOffset, long outLength, AFrameFormat outputFormat)
+    public static unsafe void Convert(byte* input, long offset, long length, APcmFormat inputFormat,
+                                      byte* output, long outOffset, long outLength, APcmFormat outputFormat)
     {
         var inSpan = new AudioSpan(input, offset, length, inputFormat);
         var outSpan = new AudioSpan(output, outOffset, outLength, outputFormat);
@@ -62,8 +62,8 @@ public static class ATools
 
 
     /// <summary> WIP </summary>
-    public static void Convert<IN, OUT>(in AudioPtr.Any<IN> input, long offset, long length, AFrameFormat inputFormat,
-                                        in AudioPtr.Any<OUT> output, long outOffset, long outLength, AFrameFormat outputFormat)
+    public static void Convert<IN, OUT>(in AudioPtr.Any<IN> input, long offset, long length, APcmFormat inputFormat,
+                                        in AudioPtr.Any<OUT> output, long outOffset, long outLength, APcmFormat outputFormat)
          where IN : unmanaged
          where OUT : unmanaged
     {
@@ -79,8 +79,8 @@ public static class ATools
 
 
     /// <summary> WIP </summary>
-    public static void Convert<IN, OUT>(ReadOnlySpan<IN> input, AFrameFormat inputFormat,
-                                        Span<OUT> output, AFrameFormat outputFormat)
+    public static void Convert<IN, OUT>(ReadOnlySpan<IN> input, APcmFormat inputFormat,
+                                        Span<OUT> output, APcmFormat outputFormat)
         where IN : unmanaged
         where OUT : unmanaged
     {
@@ -149,20 +149,22 @@ public static class ATools
     /// </summary>
     /// <param name="inputSize"></param>
     /// <param name="factor"></param>
-    /// <param name="frameSize">Sample size in bytes multiplied with number of channels.</param>
+    /// <param name="bytesPerSampleFrame">Bytes occupied by one sample across all channels.</param>
     /// <returns></returns>
-    public static long GetExpectedByteSize(long inputSize, float factor, int frameSize)
+    public static long GetExpectedByteSize(long inputSize, float factor, int bytesPerSampleFrame)
     {
-        if (inputSize <= 0 || factor <= 0.0f || frameSize <= 0)
+        if (inputSize <= 0 || factor <= 0.0f || bytesPerSampleFrame <= 0)
         {
             Debug.Fail("Parameteres for GetExpectedByteSize() function cannot be negative or 0.");
             return 0;
         }
 
-        Debug.Assert(inputSize % frameSize == 0, $"Provided input size does not contain a complete frame.");
-        long inputFrames = inputSize / frameSize;
-        long outputFrames = (long)((double)inputFrames * factor) + 200;
-        return outputFrames * frameSize;
+        Debug.Assert(
+            inputSize % bytesPerSampleFrame == 0,
+            $"Provided input size does not contain a complete PCM sample.");
+        long inputSamples = inputSize / bytesPerSampleFrame;
+        long outputSamples = (long)(inputSamples * (double)factor) + 200;
+        return outputSamples * bytesPerSampleFrame;
     }
 
 
@@ -295,25 +297,25 @@ public static class ATools
         return new AudioOutputs(bparams, buffer);
     }
 
-    internal static SampleProducer CreateSampleProducer(AChannelId channel)
+    internal static SampleValueProducer CreateSampleValueProducer(AChannelId channel)
     {
         var convertIn = ChannelConverter.Get_Func<short, float>(channel, AChannelId.MonoTrack);
         if (!convertIn.Valid)
         {
-            throw new NotImplementedException("Sample conversion function not found.");
+            throw new NotImplementedException("Sample-value conversion function not found.");
         }
 
-        return new SampleProducer(convertIn);
+        return new SampleValueProducer(convertIn);
     }
 
-    internal static SampleConsumer CreateSampleConsumer(AChannelId channel)
+    internal static SampleValueConsumer CreateSampleValueConsumer(AChannelId channel)
     {
         var convertOut = ChannelConverter.Get_Func<float, short>(AChannelId.MonoTrack, channel);
         if (!convertOut.Valid)
         {
-            throw new NotImplementedException("Sample conversion function not found.");
+            throw new NotImplementedException("Sample-value conversion function not found.");
         }
 
-        return new SampleConsumer(convertOut);
+        return new SampleValueConsumer(convertOut);
     }
 }

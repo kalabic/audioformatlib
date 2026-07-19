@@ -13,7 +13,11 @@ public class NullBuffer : IAudioBuffer
 
     public int StoredByteCount => throw new NotImplementedException();
 
-    public AFrameFormat Format => throw new NotImplementedException();
+    public int StoredSampleValueCount => throw new NotImplementedException();
+
+    public int StoredSampleCount => throw new NotImplementedException();
+
+    public APcmFormat Format => throw new NotImplementedException();
 
     public IAudioInputs Input => throw new NotImplementedException();
 

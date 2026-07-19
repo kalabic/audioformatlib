@@ -36,8 +36,8 @@ public readonly unsafe struct AFunction<ParamsT, ResultT>
     }
 
 
-    public unsafe ResultT Process(byte* input, long offset, long length, AFrameFormat inputFormat,
-                                  byte* output, long outOffset, long outLength, AFrameFormat outputFormat,
+    public unsafe ResultT Process(byte* input, long offset, long length, APcmFormat inputFormat,
+                                  byte* output, long outOffset, long outLength, APcmFormat outputFormat,
                                   ParamsT Params)
     {
         var inSpan = new AudioSpan(input, offset, length, inputFormat);
@@ -53,14 +53,14 @@ public readonly unsafe struct AFunction<ParamsT, ResultT>
     /// for different types of <see cref="Array"/> and unsafe memory pointer arguments.
     /// 
     /// </summary>
-    public ResultT Process<IN, OUT>(in AudioPtr.Any<IN> input, long offset, long length, AFrameFormat inputFormat,
-                                    in AudioPtr.Any<OUT> output, long outOffset, long outLength, AFrameFormat outputFormat,
+    public ResultT Process<IN, OUT>(in AudioPtr.Any<IN> input, long offset, long length, APcmFormat inputFormat,
+                                    in AudioPtr.Any<OUT> output, long outOffset, long outLength, APcmFormat outputFormat,
                                     ParamsT Params)
          where IN : unmanaged
          where OUT : unmanaged
     {
-        Debug.Assert(inputFormat.SampleFormat == input.Format);
-        Debug.Assert(outputFormat.SampleFormat == output.Format);
+        Debug.Assert(inputFormat.SampleValueFormat == input.Format);
+        Debug.Assert(outputFormat.SampleValueFormat == output.Format);
 
         using var fixedInput = input.MakeFixed();
         using var fixedOutput = output.MakeFixed();

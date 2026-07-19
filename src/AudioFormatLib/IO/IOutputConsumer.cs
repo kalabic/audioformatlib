@@ -15,24 +15,24 @@ namespace AudioFormatLib.IO;
 
 
 /// <summary>
-/// Callback for consuming samples. Enalbes on-the-fly conversion between sample types
+/// Callback for consuming scalar sample values. Enables on-the-fly conversion between value types
 /// (signed 16-bit integers to floats, for example) and/or writing directly to an output stream.
 /// </summary>
 public interface IOutputConsumer<T> where T : unmanaged
 {
-    long SamplesWritten { get; }
+    long SampleValuesWritten { get; }
 
     /// <summary>
-    /// Get the number of samples the output buffer has room for
+    /// Get the number of sample values the output buffer has room for.
     /// </summary>
-    /// <returns>number of samples the output buffer has room for</returns>
+    /// <returns>Number of sample values the output buffer has room for.</returns>
     long GetOutputBufferLength();
 
     /// <summary>
-    /// Copy length samples from the given array to the output buffer, starting at the given offset.
+    /// Copy sample values from the given array to the output buffer.
     /// </summary>
-    /// <param name="array">array to read from</param>
-    /// <param name="offset">start reading samples here</param>
-    /// <param name="length">read this many samples</param>
-    void ConsumeOutput(T[] array, int offset, int length);
+    /// <param name="array">Array containing sample values.</param>
+    /// <param name="sampleValueOffset">Source offset measured in sample values.</param>
+    /// <param name="sampleValueCount">Number of sample values to consume.</param>
+    void ConsumeOutput(T[] array, int sampleValueOffset, int sampleValueCount);
 }

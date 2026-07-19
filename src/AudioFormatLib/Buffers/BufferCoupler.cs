@@ -8,11 +8,11 @@ namespace AudioFormatLib.Buffers;
 
 public unsafe class BufferCoupler : DisposableBase
 {
-    public readonly int NumChannels;
+    public readonly int ChannelCount;
 
-    public readonly AFrameFormat InputFormat;
+    public readonly APcmFormat InputFormat;
 
-    public readonly AFrameFormat OutputFormat;
+    public readonly APcmFormat OutputFormat;
 
 
 
@@ -20,25 +20,25 @@ public unsafe class BufferCoupler : DisposableBase
 
     private const int IO_ATTACHED = 1;
 
-    private SampleProducer[] _producers;
+    private SampleValueProducer[] _producers;
 
-    private SampleConsumer[] _consumers;
+    private SampleValueConsumer[] _consumers;
 
     private int _ioState;
 
-    public BufferCoupler(AFrameFormat input, AFrameFormat output)
+    public BufferCoupler(APcmFormat input, APcmFormat output)
     {
         Debug.Assert(input.ChannelLayout.Count == output.ChannelLayout.Count); // WIP
-        NumChannels = input.ChannelLayout.Count;
+        ChannelCount = input.ChannelLayout.Count;
         InputFormat = input;
         OutputFormat = output;
 
-        _producers = new SampleProducer[NumChannels];
-        _consumers = new SampleConsumer[NumChannels];
+        _producers = new SampleValueProducer[ChannelCount];
+        _consumers = new SampleValueConsumer[ChannelCount];
         for (int i = 0; i < _producers.Length; i++)
         {
-            _producers[i] = ATools.CreateSampleProducer(new AChannelId(i, NumChannels));
-            _consumers[i] = ATools.CreateSampleConsumer(new AChannelId(i, NumChannels));
+            _producers[i] = ATools.CreateSampleValueProducer(new AChannelId(i, ChannelCount));
+            _consumers[i] = ATools.CreateSampleValueConsumer(new AChannelId(i, ChannelCount));
         }
     }
 

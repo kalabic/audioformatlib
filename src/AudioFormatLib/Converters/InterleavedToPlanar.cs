@@ -6,7 +6,7 @@ namespace AudioFormatLib.Converters;
 
 /// <summary>
 /// 
-/// Convert samples from interleaved source channel into destination frame with a single channel.
+/// Convert sample values from an interleaved source channel into single-channel PCM.
 /// 
 /// </summary>
 public static class InterleavedToPlanar
@@ -21,11 +21,11 @@ public static class InterleavedToPlanar
                                              in AudioSpan input,
                                              in AudioSpan output)
     {
-        Debug.Assert(input.CountOf.Frames <= output.CountOf.Frames);
+        Debug.Assert(input.CountOf.Samples <= output.CountOf.Samples);
         int ccIn = context.SrcChannel.ChannelCount;
-        byte* offsetIn = (byte*)input.GetFramePtr<float>(0, context.SrcChannel.Index);
-        byte* offsetOut = (byte*)output.GetFramePtr<float>(0, 0);
-        int length = (int)Math.Min(input.LengthSamples, output.LengthSamples);
+        byte* offsetIn = (byte*)input.GetSamplePtr<float>(0, context.SrcChannel.Index);
+        byte* offsetOut = (byte*)output.GetSamplePtr<float>(0, 0);
+        int length = (int)Math.Min(input.LengthSampleValues, output.LengthSampleValues);
         FloatPtr_To_FloatPtr_WithOffset(ccIn, offsetIn, offsetOut, length);
     }
 
@@ -33,11 +33,11 @@ public static class InterleavedToPlanar
                                              in AudioSpan input,
                                              in AudioSpan output)
     {
-        Debug.Assert(input.CountOf.Frames <= output.CountOf.Frames);
+        Debug.Assert(input.CountOf.Samples <= output.CountOf.Samples);
         int ccIn = context.SrcChannel.ChannelCount;
-        byte* offsetIn = (byte*)input.GetFramePtr<float>(0, context.SrcChannel.Index);
-        byte* offsetOut = (byte*)output.GetFramePtr<short>(0, 0);
-        int length = (int)Math.Min(input.LengthSamples, output.LengthSamples);
+        byte* offsetIn = (byte*)input.GetSamplePtr<float>(0, context.SrcChannel.Index);
+        byte* offsetOut = (byte*)output.GetSamplePtr<short>(0, 0);
+        int length = (int)Math.Min(input.LengthSampleValues, output.LengthSampleValues);
         FloatPtr_To_ShortPtr_WithOffset(ccIn, offsetIn, offsetOut, length);
     }
 
@@ -45,11 +45,11 @@ public static class InterleavedToPlanar
                                              in AudioSpan input,
                                              in AudioSpan output)
     {
-        Debug.Assert(input.CountOf.Frames <= output.CountOf.Frames);
+        Debug.Assert(input.CountOf.Samples <= output.CountOf.Samples);
         int ccIn = context.SrcChannel.ChannelCount;
-        byte* offsetIn = (byte*)input.GetFramePtr<short>(0, context.SrcChannel.Index);
-        byte* offsetOut = (byte*)output.GetFramePtr<float>(0, 0);
-        int length = (int)Math.Min(input.LengthSamples, output.LengthSamples);
+        byte* offsetIn = (byte*)input.GetSamplePtr<short>(0, context.SrcChannel.Index);
+        byte* offsetOut = (byte*)output.GetSamplePtr<float>(0, 0);
+        int length = (int)Math.Min(input.LengthSampleValues, output.LengthSampleValues);
         ShortPtr_To_FloatPtr_WithOffset(ccIn, offsetIn, offsetOut, length);
     }
 
@@ -57,11 +57,11 @@ public static class InterleavedToPlanar
                                              in AudioSpan input,
                                              in AudioSpan output)
     {
-        Debug.Assert(input.CountOf.Frames <= output.CountOf.Frames);
+        Debug.Assert(input.CountOf.Samples <= output.CountOf.Samples);
         int ccIn = context.SrcChannel.ChannelCount;
-        byte* offsetIn = (byte*)input.GetFramePtr<short>(0, context.SrcChannel.Index);
-        byte* offsetOut = (byte*)output.GetFramePtr<short>(0, 0);
-        int length = (int)Math.Min(input.LengthSamples, output.LengthSamples);
+        byte* offsetIn = (byte*)input.GetSamplePtr<short>(0, context.SrcChannel.Index);
+        byte* offsetOut = (byte*)output.GetSamplePtr<short>(0, 0);
+        int length = (int)Math.Min(input.LengthSampleValues, output.LengthSampleValues);
         ShortPtr_To_ShortPtr_WithOffset(ccIn, offsetIn, offsetOut, length);
     }
 

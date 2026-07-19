@@ -1,0 +1,11 @@
+
+## PCM vocabulary
+
+- A **sample** is one temporal PCM observation across all channels; equivalently, one sample in each channel.
+- A **sample value** is one scalar amplitude value in one channel.
+- A **sample frame** is the physical in-memory grouping of all channel sample values at one timestamp.
+- An audio block, encoded frame, or packet can contain multiple samples.
+
+`SampleRate` is the number of samples per second in each channel, not the aggregate number of
+sample values. For example, 8 kHz stereo audio contains 8,000 samples per second, 16,000 sample
+values per second, and two sample values per sample.

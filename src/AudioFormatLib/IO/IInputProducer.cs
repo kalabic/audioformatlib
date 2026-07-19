@@ -15,25 +15,25 @@ namespace AudioFormatLib.IO;
 
 
 /// <summary>
-/// Callback for producing samples. Enalbes on-the-fly conversion between sample types
+/// Callback for producing scalar sample values. Enables on-the-fly conversion between value types
 /// (signed 16-bit integers to floats, for example).
 /// </summary>
 public interface IInputProducer<T> where T : unmanaged
 {
-    long SamplesRead { get; }
+    long SampleValuesRead { get; }
 
     /// <summary>
-    /// Get the number of input samples available
+    /// Get the number of input sample values available.
     /// </summary>
-    /// <returns>number of input samples available</returns>
+    /// <returns>Number of input sample values available.</returns>
     long GetInputBufferLength();
 
     /// <summary>
-    /// Copy length samples from the input buffer to the given array, starting at the 
-    /// given offset. Samples should be in the range -1.0f to 1.0f
+    /// Copy sample values from the input buffer. Floating-point values are normalized to
+    /// the range -1.0f to 1.0f.
     /// </summary>
-    /// <param name="array">array to hold samples from the input buffer</param>
-    /// <param name="offset">start writing samples here</param>
-    /// <param name="length">write this many samples</param>
-    void ProduceInput(T[] array, int offset, int length);
+    /// <param name="array">Array that receives sample values.</param>
+    /// <param name="sampleValueOffset">Destination offset measured in sample values.</param>
+    /// <param name="sampleValueCount">Number of sample values to produce.</param>
+    void ProduceInput(T[] array, int sampleValueOffset, int sampleValueCount);
 }

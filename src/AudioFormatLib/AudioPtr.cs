@@ -14,7 +14,7 @@ public unsafe readonly struct AudioPtr
 {
     public readonly byte* BytePtr;
 
-    public readonly AFrameFormat Fmt;
+    public readonly APcmFormat Fmt;
 
 
     public bool IsNull { get { return BytePtr == null; } }
@@ -22,10 +22,10 @@ public unsafe readonly struct AudioPtr
     public AudioPtr()
     {
         BytePtr = null;
-        Fmt = AFrameFormat.NONE;
+        Fmt = APcmFormat.NONE;
     }
 
-    public AudioPtr(byte* ptr, AFrameFormat fmt)
+    public AudioPtr(byte* ptr, APcmFormat fmt)
     {
         BytePtr = ptr;
         Fmt = fmt;
@@ -61,25 +61,25 @@ public unsafe readonly struct AudioPtr
         public readonly T* Ptr;
 
         /// <summary> Default value determined by template parameter T. </summary>
-        public readonly ASampleFormat Format;
+        public readonly ASampleValueFormat Format;
 
 
         public bool IsArray { get { return Arr is not null; } }
 
-        public Any(T* other, ASampleFormat format = ASampleFormat.NONE)
+        public Any(T* other, ASampleValueFormat format = ASampleValueFormat.NONE)
         {
             Arr = null;
             Ptr = other;
-            Format = (!GenericType<T>.IsByte && format == ASampleFormat.NONE) ? ASampleFormat.NONE.DefaultForType<T>() : format;
-            Debug.Assert(GenericType<T>.IsByte || Format.IsCompatible<T>(), $"Type {nameof(T)} cannot hold sample format given as parameter.");
+            Format = (!GenericType<T>.IsByte && format == ASampleValueFormat.NONE) ? ASampleValueFormat.NONE.DefaultForType<T>() : format;
+            Debug.Assert(GenericType<T>.IsByte || Format.IsCompatible<T>(), $"Type {nameof(T)} cannot hold the supplied sample-value format.");
         }
 
-        public Any(T[] other, ASampleFormat format = ASampleFormat.NONE)
+        public Any(T[] other, ASampleValueFormat format = ASampleValueFormat.NONE)
         {
             Arr = other;
             Ptr = default;
-            Format = (!GenericType<T>.IsByte && format == ASampleFormat.NONE) ? ASampleFormat.NONE.DefaultForType<T>() : format;
-            Debug.Assert(GenericType<T>.IsByte || Format.IsCompatible<T>(), $"Type {nameof(T)} cannot hold sample format given as parameter.");
+            Format = (!GenericType<T>.IsByte && format == ASampleValueFormat.NONE) ? ASampleValueFormat.NONE.DefaultForType<T>() : format;
+            Debug.Assert(GenericType<T>.IsByte || Format.IsCompatible<T>(), $"Type {nameof(T)} cannot hold the supplied sample-value format.");
         }
 
         /// <summary> Returns an object that MUST be disposed. </summary>
@@ -104,7 +104,7 @@ public unsafe readonly struct AudioPtr
 
         public readonly T* Ptr;
 
-        public readonly ASampleFormat Format;
+        public readonly ASampleValueFormat Format;
 
         internal Fixed(Any<T> other)
         {

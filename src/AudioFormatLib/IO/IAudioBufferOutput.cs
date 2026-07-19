@@ -2,7 +2,7 @@
 
 public interface IAudioBufferOutput
 {
-    AFrameFormat Format { get; }
+    APcmFormat Format { get; }
 
     int StoredByteCount { get; }
 

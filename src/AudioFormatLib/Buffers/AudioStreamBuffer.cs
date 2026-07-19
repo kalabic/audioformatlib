@@ -13,11 +13,17 @@ public class AudioStreamBuffer : DisposableBase, IAudioBuffer
 
     public int AvailableSpace { get { return _buffer.MaxLength - _buffer.Count; } }
 
-    public AFrameFormat Format { get { return _format; } }
+    public APcmFormat Format { get { return _format; } }
 
     public bool IsClosed { get { return IsDisposed; } }
 
     public int StoredByteCount { get { return _buffer.Count; } }
+
+    /// <summary> Total scalar sample values stored across all channels. </summary>
+    public int StoredSampleValueCount { get { return _buffer.Count / _format.SampleValueFormat.Size(); } }
+
+    /// <summary> Temporal samples stored; equivalently, samples stored in each channel. </summary>
+    public int StoredSampleCount { get { return _buffer.Count / _format.BytesPerSampleFrame; } }
 
     public IAudioInputs Input { get { return _inputs; } }
 
@@ -27,7 +33,7 @@ public class AudioStreamBuffer : DisposableBase, IAudioBuffer
 
     private ABufferParams _bparams;
 
-    private readonly AFrameFormat _format;
+    private readonly APcmFormat _format;
 
     private CancellableEventSlim _streamEvent;
 
