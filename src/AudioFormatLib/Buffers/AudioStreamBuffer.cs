@@ -1,5 +1,6 @@
 ﻿using AudioFormatLib.IO;
-using AudioFormatLib.System;
+using DotBase.Buffers;
+using DotBase.Cancellation;
 using DotBase.Core;
 using System.Diagnostics;
 
@@ -9,9 +10,46 @@ namespace AudioFormatLib.Buffers;
 /// <summary> WIP </summary>
 public class AudioStreamBuffer : DisposableBase, IAudioBuffer
 {
-    public int AllocatedSize { get { return _buffer.MaxLength; } }
+    public static AudioStreamBuffer CreateForDuration(
+        APcmFormat format,
+        TimeSpan capacity,
+        bool waitForCompleteRead = false,
+        CancellationToken cancellationToken = default)
+    {
+        if (format.SampleValueFormat == ASampleValueFormat.NONE ||
+            format.SampleRate <= 0 ||
+            format.ChannelCount <= 0 ||
+            format.BytesPerSampleFrame <= 0)
+        {
+            throw new ArgumentException("A complete PCM format is required.", nameof(format));
+        }
 
-    public int AvailableSpace { get { return _buffer.MaxLength - _buffer.Count; } }
+        if (capacity <= TimeSpan.Zero)
+        {
+            throw new ArgumentOutOfRangeException(nameof(capacity), "Buffer duration must be positive.");
+        }
+
+        decimal sampleCount = decimal.Ceiling(
+            (decimal)format.SampleRate * capacity.Ticks / TimeSpan.TicksPerSecond);
+        decimal byteCount = sampleCount * format.BytesPerSampleFrame;
+        if (byteCount > int.MaxValue)
+        {
+            throw new ArgumentOutOfRangeException(nameof(capacity), "The requested buffer is too large.");
+        }
+
+        return new AudioStreamBuffer(
+            new ABufferParams
+            {
+                Format = format,
+                BufferSize = decimal.ToInt32(byteCount),
+                WaitForCompleteRead = waitForCompleteRead
+            },
+            cancellationToken);
+    }
+
+    public int AllocatedSize { get { return _buffer.Capacity; } }
+
+    public int AvailableSpace { get { return _buffer.Capacity - _buffer.Count; } }
 
     public APcmFormat Format { get { return _format; } }
 
@@ -37,7 +75,7 @@ public class AudioStreamBuffer : DisposableBase, IAudioBuffer
 
     private CancellableEventSlim _streamEvent;
 
-    private IUnsafeBuffer _buffer;
+    private IByteRingBuffer _buffer;
 
     private AudioInputs _inputs;
 

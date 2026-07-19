@@ -1,7 +1,8 @@
 ﻿using AudioFormatLib.IO;
-using System;
+using DotBase.Buffers;
 
 namespace AudioFormatLib.Buffers;
+
 
 internal class AudioInputs : IAudioInputs
 {
@@ -19,7 +20,7 @@ internal class AudioInputs : IAudioInputs
 
     private readonly IAudioStreamInput _streamInput;
 
-    internal AudioInputs(ABufferParams bparams, IUnsafeBuffer buffer)
+    internal AudioInputs(ABufferParams bparams, IByteRingBuffer buffer)
     {
         _format = bparams.Format;
         _bufferInput = new SharedAudioBufferInput(bparams.Format, buffer);

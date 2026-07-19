@@ -8,6 +8,37 @@ namespace AudioFormatLib.Utils;
 public class AudioResampler 
     : AudioFunction<bool, long>
 {
+    private const int FinalFlushSampleValueCapacityPerChannel = 4_096;
+
+    public static AudioResampler CreatePcm16(
+        int inputSampleRate,
+        int outputSampleRate,
+        int channelCount = 1,
+        bool highQuality = true)
+    {
+        if (inputSampleRate <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(inputSampleRate));
+        }
+
+        if (outputSampleRate <= 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(outputSampleRate));
+        }
+
+        if (channelCount is < 1 or > 2)
+        {
+            throw new ArgumentOutOfRangeException(nameof(channelCount));
+        }
+
+        return Create(new AResamplerParams
+        {
+            HighQuality = highQuality,
+            Input = new APcmFormat(ASampleValueFormat.S16, inputSampleRate, channelCount),
+            Output = new APcmFormat(ASampleValueFormat.S16, outputSampleRate, channelCount)
+        });
+    }
+
     public static AudioResampler Create(AResamplerParams RP)
     {
         if (RP.Input.ChannelCount < 1 || RP.Input.ChannelCount > 2 || RP.Output.ChannelCount < 0 || RP.Output.ChannelCount > 2)
@@ -109,39 +140,72 @@ public class AudioResampler
     /// </summary>
     public override long Process(in AudioSpan input, in AudioSpan output, bool Params)
     {
-        if (_coupler.AttachBuffers(input, output))
+        if (!_coupler.AttachBuffers(input, output))
         {
-            try
-            {
-                return Process(Params);
-            }
-#pragma warning disable CS0168 // Variable is declared but never used
-            catch (Exception ex)
-#pragma warning restore CS0168 // Variable is declared but never used
-            {
-                return 0;
-            }
-            finally
-            {
-                _coupler.ReleaseBuffers();
-            }
+            throw new InvalidOperationException("The resampler is already processing another buffer.");
         }
-        else
+
+        try
         {
-            return 0;
+            return Process(Params);
+        }
+        finally
+        {
+            _coupler.ReleaseBuffers();
         }
     }
 
     public T[] Process<T>(T[] input)
         where T : unmanaged
     {
-        return Process(input, 0, input.LongLength);
+        return Process(input, endOfInput: false);
+    }
+
+    public T[] Process<T>(T[] input, bool endOfInput)
+        where T : unmanaged
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        return Process(input, 0, input.LongLength, endOfInput);
     }
 
     public T[] Process<T>(T[] input, long sampleValueOffset, long sampleValueCount)
         where T : unmanaged
     {
+        return Process(input, sampleValueOffset, sampleValueCount, endOfInput: false);
+    }
+
+    public T[] Process<T>(
+        T[] input,
+        long sampleValueOffset,
+        long sampleValueCount,
+        bool endOfInput)
+        where T : unmanaged
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        if (sampleValueOffset < 0 || sampleValueCount < 0 ||
+            sampleValueOffset > input.LongLength - sampleValueCount)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sampleValueOffset));
+        }
+
+        if (!Params.Input.SampleValueFormat.IsCompatible<T>() ||
+            !Params.Output.SampleValueFormat.IsCompatible<T>())
+        {
+            throw new ArgumentException("The array element type does not match the resampler PCM format.", nameof(input));
+        }
+
         long outputCapacity = Params.GetExpectedOutputSampleValueCapacity(sampleValueCount);
+        if (endOfInput)
+        {
+            outputCapacity = checked(
+                outputCapacity + (long)FinalFlushSampleValueCapacityPerChannel * Params.ChannelCount);
+        }
+
+        if (outputCapacity > int.MaxValue)
+        {
+            throw new ArgumentOutOfRangeException(nameof(sampleValueCount), "The output array would be too large.");
+        }
+
         T[] output = new T[outputCapacity];
         long outputSampleValueCount = Process<T, T>(
             input,
@@ -150,7 +214,12 @@ public class AudioResampler
             output,
             0,
             outputCapacity,
-            false);
+            endOfInput);
+        if (outputSampleValueCount < 0 || outputSampleValueCount > outputCapacity)
+        {
+            throw new InvalidOperationException("The resampler returned an invalid output sample-value count.");
+        }
+
         Array.Resize(ref output, (int)outputSampleValueCount);
         return output;
     }

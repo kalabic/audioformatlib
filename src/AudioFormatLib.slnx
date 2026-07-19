@@ -1,0 +1,9 @@
+<Solution>
+  <Configurations>
+    <Platform Name="Any CPU" />
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="AudioFormatLib.Tests/AudioFormatLib.Tests.csproj" />
+  <Project Path="AudioFormatLib\AudioFormatLib.csproj" />
+</Solution>

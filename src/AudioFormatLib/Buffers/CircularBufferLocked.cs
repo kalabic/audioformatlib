@@ -1,4 +1,6 @@
-﻿namespace AudioFormatLib.Buffers;
+﻿using DotBase.Buffers;
+
+namespace AudioFormatLib.Buffers;
 
 public class CircularBufferLocked : CircularBufferUnlocked
 {

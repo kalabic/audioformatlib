@@ -1,4 +1,5 @@
-﻿using AudioFormatLib.System;
+﻿using DotBase.Buffers;
+using DotBase.Cancellation;
 
 namespace AudioFormatLib.Buffers;
 
@@ -96,7 +97,7 @@ public class CircularBufferWaitable : CircularBufferUnlocked
     public override int Read(byte[] data, int offset, int length)
     {
         // Cannot force read if requested length is larger than allocated buffer size.
-        ArgumentOutOfRangeException.ThrowIfGreaterThan(length, MaxLength, nameof(length));
+        ArgumentOutOfRangeException.ThrowIfGreaterThan(length, Capacity, nameof(length));
 
         while (true)
         {

@@ -12,6 +12,7 @@
  *****************************************************************************/
 
 using AudioFormatLib.Extensions;
+using DotBase.Tools;
 
 namespace AudioFormatLib;
 

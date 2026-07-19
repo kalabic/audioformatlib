@@ -1,7 +1,7 @@
 ﻿using AudioFormatLib.Buffers;
 using AudioFormatLib.Extensions;
-using AudioFormatLib.IO;
 using AudioFormatLib.Utils;
+using DotBase.Buffers;
 using System.Diagnostics;
 
 namespace AudioFormatLib;
@@ -275,7 +275,7 @@ public static class ATools
         return outputSampleRate;
     }
 
-    internal static IUnsafeBuffer CreateUnsafeBuffer(ABufferParams bparams)
+    internal static IByteRingBuffer CreateUnsafeBuffer(ABufferParams bparams)
     {
         if (bparams.WaitForCompleteRead)
         {
@@ -287,12 +287,12 @@ public static class ATools
         }
     }
 
-    internal static AudioInputs CreateInputsWithBuffer(ABufferParams bparams, IUnsafeBuffer buffer)
+    internal static AudioInputs CreateInputsWithBuffer(ABufferParams bparams, IByteRingBuffer buffer)
     {
         return new AudioInputs(bparams, buffer);
     }
 
-    internal static AudioOutputs CreateOutputsWithBuffer(ABufferParams bparams, IUnsafeBuffer buffer)
+    internal static AudioOutputs CreateOutputsWithBuffer(ABufferParams bparams, IByteRingBuffer buffer)
     {
         return new AudioOutputs(bparams, buffer);
     }

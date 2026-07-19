@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <Version>1.4.0-alpha</Version>
+    <Version>1.5.0-alpha</Version>
     <Authors>silvije</Authors>
     <Copyright>Copyright © Silvije Kalabic 2025, 2026. All rights reserved.</Copyright>
     <PackageProjectUrl>https://github.com/kalabic/audioformatlib</PackageProjectUrl>
@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotBase" Version="1.4.0-beta" />
+    <PackageReference Include="DotBase" Version="1.5.1-beta" />
   </ItemGroup>
 
 </Project>

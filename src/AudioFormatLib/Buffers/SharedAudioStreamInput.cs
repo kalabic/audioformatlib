@@ -1,4 +1,5 @@
 ﻿using AudioFormatLib.IO;
+using DotBase.Buffers;
 
 namespace AudioFormatLib.Buffers;
 
@@ -11,9 +12,9 @@ internal class SharedAudioStreamInput : IAudioStreamInput
     private readonly APcmFormat _format;
 
     /// <summary> Externally managed buffer. </summary>
-    private readonly IUnsafeBuffer _buffer;
+    private readonly IByteRingBuffer _buffer;
 
-    public SharedAudioStreamInput(APcmFormat format, IUnsafeBuffer sharedBuffer)
+    public SharedAudioStreamInput(APcmFormat format, IByteRingBuffer sharedBuffer)
     {
         _format = format;
         _buffer = sharedBuffer;

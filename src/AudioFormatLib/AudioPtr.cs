@@ -1,4 +1,5 @@
 ﻿using AudioFormatLib.Extensions;
+using DotBase.Tools;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
