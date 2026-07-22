@@ -13,19 +13,13 @@ public static class AudioBufferExtensions
         ArgumentNullException.ThrowIfNull(buffer);
         ArgumentNullException.ThrowIfNull(source);
         ValidateRange(source.Length, offset, count);
-        ValidatePcm16(buffer.Format);
+        var input = buffer.Input.Pcm16Values ?? throw new InvalidOperationException(
+            "Exact short-array operations require signed 16-bit PCM.");
 
-        int byteCount = checked(count * sizeof(short));
-        if (buffer.AvailableSpace < byteCount)
-        {
-            throw new InvalidOperationException("The audio buffer does not have enough free space.");
-        }
-
-        int written = buffer.Input.Buffer.Write(source, offset, count);
-        if (written != count)
+        if (!input.TryWrite(source, offset, count))
         {
             throw new InvalidOperationException(
-                $"The audio buffer accepted {written} of {count} sample values after capacity was reserved.");
+                "The audio buffer is closed or does not have enough free space.");
         }
     }
 
@@ -38,26 +32,13 @@ public static class AudioBufferExtensions
         ArgumentNullException.ThrowIfNull(buffer);
         ArgumentNullException.ThrowIfNull(destination);
         ValidateRange(destination.Length, offset, count);
-        ValidatePcm16(buffer.Format);
+        var output = buffer.Output.Pcm16Values ?? throw new InvalidOperationException(
+            "Exact short-array operations require signed 16-bit PCM.");
 
-        if (buffer.StoredSampleValueCount < count)
-        {
-            throw new InvalidOperationException("The audio buffer does not contain enough sample values.");
-        }
-
-        int read = buffer.Output.Buffer.Read(destination, offset, count);
-        if (read != count)
+        if (!output.TryRead(destination, offset, count))
         {
             throw new InvalidOperationException(
-                $"The audio buffer returned {read} of {count} sample values after data was reserved.");
-        }
-    }
-
-    private static void ValidatePcm16(APcmFormat format)
-    {
-        if (format.SampleValueFormat != ASampleValueFormat.S16)
-        {
-            throw new InvalidOperationException("Exact short-array operations require signed 16-bit PCM.");
+                "The audio buffer is closed or does not contain enough sample values.");
         }
     }
 

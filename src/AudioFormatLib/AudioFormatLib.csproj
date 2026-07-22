@@ -27,7 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DotBase" Version="1.5.1-beta" />
+    <PackageReference Include="DotBase" Version="1.6.0" />
   </ItemGroup>
 
 </Project>

@@ -1,12 +1,12 @@
 ﻿using AudioFormatLib.IO;
 using DotBase.Buffers;
 
-namespace AudioFormatLib.Buffers;
+namespace AudioFormatLib.Buffers.Internal;
 
 
 internal class SharedAudioStreamInput : IAudioStreamInput
 {
-    public override APcmFormat Format => throw new NotImplementedException();
+    public override APcmFormat Format { get { return _format; } }
 
 
     private readonly APcmFormat _format;

@@ -1,7 +1,8 @@
 ﻿using AudioFormatLib.IO;
 using DotBase.Buffers;
+using DotBase.Buffers.Integral;
 
-namespace AudioFormatLib.Buffers;
+namespace AudioFormatLib.Buffers.Internal;
 
 
 internal class SharedAudioBufferInput : IAudioBufferInput
@@ -15,10 +16,16 @@ internal class SharedAudioBufferInput : IAudioBufferInput
     /// <summary> Externally managed buffer. </summary>
     private readonly IByteRingBuffer _buffer;
 
-    public SharedAudioBufferInput(APcmFormat format, IByteRingBuffer sharedBuffer)
+    private readonly IPcm16ValueInput? _pcm16ValueInput;
+
+    public SharedAudioBufferInput(
+        APcmFormat format,
+        IIntegralRingBuffer sharedBuffer,
+        IPcm16ValueInput? pcm16ValueInput)
     {
         _format = format;
         _buffer = sharedBuffer;
+        _pcm16ValueInput = pcm16ValueInput;
     }
 
     public void ClearBuffer()
@@ -33,12 +40,8 @@ internal class SharedAudioBufferInput : IAudioBufferInput
 
     public int Write(short[] buffer, int offset, int count)
     {
-        unsafe
-        {
-            fixed(short* bufferPtr = buffer)
-            {
-                return _buffer.Write((byte *)bufferPtr, offset * sizeof(short), count * sizeof(short)) / sizeof(short);
-            }
-        }
+        return (_pcm16ValueInput ?? throw new InvalidOperationException(
+            "Short-array operations require signed 16-bit PCM."))
+            .Write(buffer, offset, count);
     }
 }

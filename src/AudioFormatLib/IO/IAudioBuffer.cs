@@ -12,6 +12,9 @@ public interface IAudioBuffer : IDisposable
 
     bool IsClosed { get; }
 
+    /// <summary>Whether ordinary reads wait until the complete request is available.</summary>
+    bool WaitForCompleteRead { get; }
+
     int StoredByteCount { get; }
 
     /// <summary> Total scalar sample values stored across all channels. </summary>

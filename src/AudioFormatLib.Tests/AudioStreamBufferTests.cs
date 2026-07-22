@@ -16,7 +16,8 @@ public sealed class AudioStreamBufferTests
     {
         using AudioStreamBuffer buffer = AudioStreamBuffer.CreateForDuration(
             new APcmFormat(ASampleValueFormat.S16, 8_000, channelCount),
-            TimeSpan.FromSeconds(1));
+            TimeSpan.FromSeconds(1),
+            cancellationToken: TestContext.Current.CancellationToken);
 
         Assert.Equal(expectedBytes, buffer.AllocatedSize);
         Assert.Equal(expectedBytes, buffer.AvailableSpace);
@@ -35,7 +36,8 @@ public sealed class AudioStreamBufferTests
     {
         using AudioStreamBuffer buffer = AudioStreamBuffer.CreateForDuration(
             new APcmFormat(ASampleValueFormat.S16, 8_000, 1),
-            TimeSpan.FromMilliseconds(20));
+            TimeSpan.FromMilliseconds(20),
+            cancellationToken: TestContext.Current.CancellationToken);
 
         short[] values = new short[161];
         Assert.Throws<InvalidOperationException>(
@@ -48,7 +50,8 @@ public sealed class AudioStreamBufferTests
     {
         using AudioStreamBuffer buffer = AudioStreamBuffer.CreateForDuration(
             new APcmFormat(ASampleValueFormat.S16, 8_000, 1),
-            TimeSpan.FromMilliseconds(20));
+            TimeSpan.FromMilliseconds(20),
+            cancellationToken: TestContext.Current.CancellationToken);
         short[] source = [1, 2, 3];
         buffer.WriteSampleValuesExactly(source, 0, source.Length);
 

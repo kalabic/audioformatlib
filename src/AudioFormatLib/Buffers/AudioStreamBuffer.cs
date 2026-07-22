@@ -1,8 +1,9 @@
 ﻿using AudioFormatLib.IO;
-using DotBase.Buffers;
 using DotBase.Cancellation;
 using DotBase.Core;
+using DotBase.Buffers.Integral;
 using System.Diagnostics;
+using AudioFormatLib.Buffers.Internal;
 
 namespace AudioFormatLib.Buffers;
 
@@ -55,6 +56,8 @@ public class AudioStreamBuffer : DisposableBase, IAudioBuffer
 
     public bool IsClosed { get { return IsDisposed; } }
 
+    public bool WaitForCompleteRead { get { return _bparams.WaitForCompleteRead; } }
+
     public int StoredByteCount { get { return _buffer.Count; } }
 
     /// <summary> Total scalar sample values stored across all channels. </summary>
@@ -75,7 +78,7 @@ public class AudioStreamBuffer : DisposableBase, IAudioBuffer
 
     private CancellableEventSlim _streamEvent;
 
-    private IByteRingBuffer _buffer;
+    private IIntegralRingBuffer _buffer;
 
     private AudioInputs _inputs;
 
@@ -87,12 +90,14 @@ public class AudioStreamBuffer : DisposableBase, IAudioBuffer
     {
         Debug.Assert(bparams.BufferSize > 0);
 
-        _bparams = bparams;
         _format = bparams.Format;
+        _format.ByteOrder = _format.ByteOrder.Resolve();
+        _bparams = bparams;
+        _bparams.Format = _format;
         _streamEvent = new CancellableEventSlim(cancellation);
-        _buffer = ATools.CreateUnsafeBuffer(bparams);
-        _inputs = ATools.CreateInputsWithBuffer(bparams, _buffer);
-        _outputs = ATools.CreateOutputsWithBuffer(bparams, _buffer);
+        _buffer = ATools.CreateIntegralBuffer(_bparams);
+        _inputs = ATools.CreateInputsWithBuffer(_bparams, _buffer);
+        _outputs = ATools.CreateOutputsWithBuffer(_bparams, _buffer);
     }
 
     public AudioStreamBuffer(ABufferParams bufferParams)
@@ -104,6 +109,7 @@ public class AudioStreamBuffer : DisposableBase, IAudioBuffer
         if (disposing)
         {
             CloseBuffer();
+            _buffer.Dispose();
             _streamEvent.Dispose();
         }
 

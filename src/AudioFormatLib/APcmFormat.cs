@@ -33,6 +33,9 @@ public struct APcmFormat
 
     public bool IsPlanar {  get { return ChannelLayout.IsPlanar; } }
 
+    /// <summary>Byte order used to store each multi-byte sample value.</summary>
+    public AByteOrder ByteOrder;
+
 
     public ASampleValueFormat SampleValueFormat;
 
@@ -55,8 +58,10 @@ public struct APcmFormat
         ASampleValueFormat sampleValueFormat,
         int sampleRate,
         int channelCount,
-        bool planar = false)
+        bool planar = false,
+        AByteOrder byteOrder = AByteOrder.Native)
     {
+        ByteOrder = byteOrder;
         SampleValueFormat = sampleValueFormat;
         SampleRate = sampleRate;
         ChannelLayout = new AChannelLayout(channelCount, planar);

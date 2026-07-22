@@ -1,7 +1,7 @@
-﻿using AudioFormatLib.Buffers;
+﻿using AudioFormatLib.Buffers.Internal;
 using AudioFormatLib.Extensions;
 using AudioFormatLib.Utils;
-using DotBase.Buffers;
+using DotBase.Buffers.Integral;
 using System.Diagnostics;
 
 namespace AudioFormatLib;
@@ -275,24 +275,25 @@ public static class ATools
         return outputSampleRate;
     }
 
-    internal static IByteRingBuffer CreateUnsafeBuffer(ABufferParams bparams)
+    internal static IIntegralRingBuffer CreateIntegralBuffer(ABufferParams bparams)
     {
+        var byteOrder = bparams.Format.ByteOrder.ToIntegralByteOrder();
         if (bparams.WaitForCompleteRead)
         {
-            return new CircularBufferWaitable(bparams.BufferSize);
+            return IntegralRingBuffer.CreateWaitable(bparams.BufferSize, byteOrder);
         }
         else
         {
-            return new CircularBufferLocked(bparams.BufferSize);
+            return IntegralRingBuffer.CreateLocked(bparams.BufferSize, byteOrder);
         }
     }
 
-    internal static AudioInputs CreateInputsWithBuffer(ABufferParams bparams, IByteRingBuffer buffer)
+    internal static AudioInputs CreateInputsWithBuffer(ABufferParams bparams, IIntegralRingBuffer buffer)
     {
         return new AudioInputs(bparams, buffer);
     }
 
-    internal static AudioOutputs CreateOutputsWithBuffer(ABufferParams bparams, IByteRingBuffer buffer)
+    internal static AudioOutputs CreateOutputsWithBuffer(ABufferParams bparams, IIntegralRingBuffer buffer)
     {
         return new AudioOutputs(bparams, buffer);
     }
